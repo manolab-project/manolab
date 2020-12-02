@@ -1,4 +1,4 @@
-#include <QApplication>
+#include <QCoreApplication>
 #include <QSettings>
 #include <QDir>
 #include <QTimer>
@@ -68,9 +68,7 @@ int main(int argc, char *argv[])
 
     CommandLine opt(argc, argv);
 
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-
-    QApplication app(argc, argv);
+    QCoreApplication app(argc, argv);
 
     QCoreApplication::setOrganizationName("D8S EURL");
     QCoreApplication::setOrganizationDomain("d8s.eu");

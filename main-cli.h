@@ -1,7 +1,7 @@
 #ifndef MAIN_CLI_H
 #define MAIN_CLI_H
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QSettings>
 #include <QDir>
 #include <QTimer>
@@ -45,7 +45,7 @@ public slots:
         if (workspaceDir.size() > 0)
         {
             engine.SetWorkspace(workspaceDir);
-            std::cout << "Switched workspace to: " + workspaceDir;
+            std::cout << "Switched workspace to: " + workspaceDir << std::endl;
         }
 
         std::string p = engine.GetWorkspace() + "/files";
