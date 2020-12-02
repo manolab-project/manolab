@@ -47,14 +47,16 @@ HEADERS += \
     SoundPlayer.h \
     ShowImage.h
 
-VPATH += devices jsext
-INCLUDEPATH += devices jsext
+VPATH += $$MANOLAB_ROOT_DIR/devices
+VPATH += $$MANOLAB_ROOT_DIR/jsext
+INCLUDEPATH += $$MANOLAB_ROOT_DIR/devices
+INCLUDEPATH += $$MANOLAB_ROOT_DIR/jsext
 
 # ------------------------------------------------------------------------------
 # ICL library
 # ------------------------------------------------------------------------------
 CONFIG += icl_zip icl_http
-ICL_DIR = $$BASE_DIR/lib/icl
+ICL_DIR = $$MANOLAB_ROOT_DIR/lib/icl
 include($$ICL_DIR/icl.pri)
 
 # ------------------------------------------------------------------------------
@@ -63,8 +65,8 @@ include($$ICL_DIR/icl.pri)
 SOURCES += serial.c
 HEADERS += serial.h
 
-VPATH += lib/serial
-INCLUDEPATH += lib/serial
+VPATH += $$MANOLAB_ROOT_DIR/lib/serial
+INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/serial
 
 # ------------------------------------------------------------------------------
 # USB library
@@ -76,7 +78,7 @@ INCLUDEPATH += lib/serial
 
 #windows {
 #    *-g++* {
-#        LIBS += -L$$BASE_DIR/libusb -lusb-1.0
+#        LIBS += -L$$MANOLAB_ROOT_DIR/libusb -lusb-1.0
 #    }
 #}
 
@@ -84,9 +86,9 @@ INCLUDEPATH += lib/serial
 # IXXAT CAN BUS library
 # ------------------------------------------------------------------------------
 windows {
-    INCLUDEPATH += $$BASE_DIR/lib/ixxat/libixxat
-    VPATH += $$BASE_DIR/lib/ixxat/libixxat
-    LIBS += -L$$BASE_DIR/lib/ixxat/libixxat
+    INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/ixxat/libixxat
+    VPATH += $$MANOLAB_ROOT_DIR/lib/ixxat/libixxat
+    LIBS += -L$$MANOLAB_ROOT_DIR/lib/ixxat/libixxat
     QMAKE_LIBS +=
     HEADERS += libixxat.h
 }
@@ -97,14 +99,14 @@ windows {
 SOURCES += modbus.c
 HEADERS += modbus.h
 
-VPATH += lib/modbuslib
-INCLUDEPATH += lib/modbuslib
+VPATH += $$MANOLAB_ROOT_DIR/lib/modbuslib
+INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/modbuslib
 
 # ------------------------------------------------------------------------------
 # QR Code library
 # ------------------------------------------------------------------------------
 
-QR_LIB_PATH = $$BASE_DIR/lib/qrencode-4.0.0
+QR_LIB_PATH = $$MANOLAB_ROOT_DIR/lib/qrencode-4.0.0
 
 VPATH += $$QR_LIB_PATH
 INCLUDEPATH += $$QR_LIB_PATH
