@@ -1,0 +1,4 @@
+LIBRARY libixxat
+EXPORTS
+	init_server @1
+	stop_server @2
