@@ -1,3 +1,13 @@
+
+# ------------------------------------------------------------------------------
+# GUI files
+# ------------------------------------------------------------------------------
+manolab_gui {
+
+SOURCES += QEngineModel.cpp
+HEADERS += QEngineModel.h
+}
+
 # ------------------------------------------------------------------------------
 # Device files
 # ------------------------------------------------------------------------------
@@ -19,6 +29,7 @@ SOURCES += \
     ExecuteCommand.cpp \
     ModbusMaster.cpp \
     InputText.cpp \
+    MiniCircuitsPwrSen.cpp \
     AcuDC.cpp \
     SoundPlayer.cpp \
     ShowImage.cpp
@@ -38,6 +49,7 @@ HEADERS += \
     Controllino.h \
     ManoLabServer.h \
     LonganCanModule.h \
+    MiniCircuitsPwrSen.h \
     IProcessEngine.h \
     ExecuteCommand.h \
     ModbusMaster.h \
@@ -67,6 +79,15 @@ HEADERS += serial.h
 
 VPATH += $$MANOLAB_ROOT_DIR/lib/serial
 INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/serial
+
+# ------------------------------------------------------------------------------
+# HID library
+# ------------------------------------------------------------------------------
+SOURCES += hid_linux.c
+HEADERS += hidapi.h
+
+VPATH += $$MANOLAB_ROOT_DIR/lib/libhid
+INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/libhid
 
 # ------------------------------------------------------------------------------
 # USB library
