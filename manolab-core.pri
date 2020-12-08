@@ -83,7 +83,12 @@ INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/serial
 # ------------------------------------------------------------------------------
 # HID library
 # ------------------------------------------------------------------------------
+unix {
 SOURCES += hid_linux.c
+}
+windows {
+SOURCES += hid_win32.c
+}
 HEADERS += hidapi.h
 
 VPATH += $$MANOLAB_ROOT_DIR/lib/libhid
@@ -111,7 +116,8 @@ windows {
     VPATH += $$MANOLAB_ROOT_DIR/lib/ixxat/libixxat
     LIBS += -L$$MANOLAB_ROOT_DIR/lib/ixxat/libixxat
     QMAKE_LIBS +=
-    HEADERS += libixxat.h
+    HEADERS += libixxat.h CanDevice.h
+    SOURCES += CanDevice.cpp
 }
 
 # ------------------------------------------------------------------------------
