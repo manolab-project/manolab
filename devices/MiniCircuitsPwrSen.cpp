@@ -7,7 +7,6 @@
 #include "Util.h"
 #include "Log.h"
 #include "HttpProtocol.h"
-#include "UdpSocket.h"
 
 MiniCircuitsPwrSen::MiniCircuitsPwrSen() noexcept
     : DeviceBase ("MiniCircuitsPwrSen")
