@@ -14,8 +14,8 @@ Window {
     visibility: Window.Maximized
     width: 1120
     height: 800
-    title: qsTr("NovProd 1.6.1") + " - workspace: " + manufEngine.workspace
-    color: manufEngine.admin ? "red" : "white";
+    title: qsTr("NovProd 1.6.2") + " - workspace: " + manufEngine.workspace
+    color: manufEngine.admin ? "red" : "lightgrey";
 
     Shortcut {
         context: Qt.ApplicationShortcut

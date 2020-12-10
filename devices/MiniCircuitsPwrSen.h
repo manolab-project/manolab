@@ -6,6 +6,7 @@
 #include "DeviceBase.h"
 #include "SerialPort.h"
 #include "hidapi.h"
+#include "TcpClient.h"
 
 class MiniCircuitsPwrSen : public DeviceBase
 {
@@ -23,6 +24,8 @@ private:
      hid_device *mHandle;
      bool mInitialized;
      uint8_t mBuffer[64];
+     tcp::TcpClient  mClient;
+     std::string SendCommand(const std::string &req, bool post);
 };
 
 
