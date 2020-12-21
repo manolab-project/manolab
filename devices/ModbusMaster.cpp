@@ -4,6 +4,7 @@
 #include <JsonReader.h>
 #include <sstream>
 #include <iostream>
+#include <thread>
 
 ModbusMaster::ModbusMaster()
     : DeviceBase("ModbusMaster")
@@ -253,6 +254,7 @@ bool ModbusMaster::ModbusRequest(std::uint32_t size, uint8_t slave_address, std:
     if (mPort.Write(&mPacket[0], size) == SerialPort::cPortWriteSuccess)
     {
         std::string readData;
+        std::this_thread::sleep_for(std::chrono::milliseconds(30));
 
         if (mPort.Read(readData, timeout_sec) == SerialPort::cPortReadSuccess)
         {
@@ -288,54 +290,28 @@ bool ModbusMaster::ModbusRequest(std::uint32_t size, uint8_t slave_address, std:
 
 Value ModbusMaster::Function3Request(uint8_t slave_address, uint16_t start_addr, uint16_t nbWords)
 {
-    Value ret;
-    std::stringstream ss;
-    int32_t req_size = BuildFunc3Packet(MODBUS_RTU, slave_address, start_addr, nbWords);
-
-    if (req_size > 0)
-    {
-        if (ModbusRequest(static_cast<std::uint32_t>(req_size), slave_address, 4))
-        {
-            ss << R"({"success": true, "size": )" << nbWords << R"(, "data": [)";
-
-            if (nbWords > 0)
-            {
-               for (std::uint32_t i = 0; i < nbWords; i++)
-               {
-                   uint16_t value = GetUint16Be(i);
-                   ss << value;
-                   if (i < (nbWords - 1))
-                   {
-                       ss << ", ";
-                   }
-               }
-            }
-
-            ss  << "]}";
-
-           std::cout << "CAN READ: " << ss.str() << std::endl;
-        }
-        else
-        {
-            SetError(GetModbusError());
-            ss << R"({"success": false})";
-        }
-    }
-    else
-    {
-        SetError("Modbus request error: " + std::to_string(req_size));
-    }
-
-    ret = Value(ss.str());
-    ret.SetJsonString(true);
-    return ret;
+    return Function3_4Request(true, slave_address, start_addr, nbWords);
 }
 
 Value ModbusMaster::Function4Request(uint8_t slave_address, uint16_t start_addr, uint16_t nbWords)
 {
+    return Function3_4Request(false, slave_address, start_addr, nbWords);
+}
+
+Value ModbusMaster::Function3_4Request(bool isFunc3, uint8_t slave_address, uint16_t start_addr, uint16_t nbWords)
+{
     Value ret;
     std::stringstream ss;
-    int32_t req_size = BuildFunc4Packet(MODBUS_RTU, slave_address, start_addr, nbWords);
+    int32_t req_size = 0;
+
+    if (isFunc3)
+    {
+        req_size = BuildFunc3Packet(MODBUS_RTU, slave_address, start_addr, nbWords);
+    }
+    else
+    {
+        req_size = BuildFunc4Packet(MODBUS_RTU, slave_address, start_addr, nbWords);
+    }
 
     if (req_size > 0)
     {
@@ -345,11 +321,11 @@ Value ModbusMaster::Function4Request(uint8_t slave_address, uint16_t start_addr,
 
             if (nbWords > 0)
             {
-               for (std::uint32_t i = 0; i < nbWords; i++)
+               for (std::uint32_t i = 0; i < (nbWords * 2); i += 2)
                {
                    uint16_t value = GetUint16Be(i);
                    ss << value;
-                   if (i < (nbWords - 1))
+                   if (i < ((nbWords - 1) * 2))
                    {
                        ss << ", ";
                    }
@@ -375,6 +351,7 @@ Value ModbusMaster::Function4Request(uint8_t slave_address, uint16_t start_addr,
     ret.SetJsonString(true);
     return ret;
 }
+
 
 Value ModbusMaster::Function1Request(uint8_t slave_address, uint16_t start_addr, uint16_t nbCoils)
 {
