@@ -39,6 +39,7 @@ ProcessEngine::ProcessEngine()
     mDeviceList.push_back(&mLabelPrinter);
     mDeviceList.push_back(&mLonganCan);
     mDeviceList.push_back(&mManoLabServer);
+    mDeviceList.push_back(&mMiniCircuitsPwrSen);
 
     for (auto & dev : mDeviceList)
     {

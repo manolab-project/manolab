@@ -20,13 +20,13 @@
 
 #include "serial.h"
 
-
+#ifdef USE_WINDOWS_OS
 #include <windows.h>
 #include <dbghelp.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
-
 
 
 [[noreturn]] void signal_handler(int sig)

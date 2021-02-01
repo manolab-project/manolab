@@ -29,6 +29,7 @@
 #include "IProcessEngine.h"
 #include "InputText.h"
 #include "ShowImage.h"
+#include "MiniCircuitsPwrSen.h"
 
 #ifdef USE_WINDOWS_OS
 #include "CanDevice.h"
@@ -179,6 +180,7 @@ private:
     InputText mInputText;
     std::vector<DeviceBase *> mDeviceList;
     std::string mBufferedLabelImage;
+    MiniCircuitsPwrSen mMiniCircuitsPwrSen;
 
     static void EntryPoint(void *pthis);
     void Run();

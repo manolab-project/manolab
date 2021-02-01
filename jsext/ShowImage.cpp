@@ -14,7 +14,7 @@
 
 #include "ShowImage.h"
 #include "Util.h"
-#include "Base64.h"
+#include "Base64Util.h"
 #include "Log.h"
 
 std::string ShowImage::mWorkspacePath;

@@ -46,6 +46,7 @@ private:
     Value Function6Request(uint8_t slave_address, uint16_t addr, uint16_t value);
     Value Function15Request(uint8_t slave_address, uint16_t start_addr, uint8_t *data, uint16_t nb_words);
     Value Function4Request(uint8_t slave_address, uint16_t start_addr, uint16_t nbWords);
+    Value Function3_4Request(bool isFunc3, uint8_t slave_address, uint16_t start_addr, uint16_t nbWords);
 };
 
 #endif // MODBUSM_ASTER_H

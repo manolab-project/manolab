@@ -337,20 +337,14 @@ bool CanDevice::Request(tcp::TcpClient &client, const std::string &req, std::str
 {
     bool success = false;
 
+
     if (client.IsConnected())
     {
         client.Send(req);
-        if (client.DataWaiting(10000))
+        if (client.RecvWithTimeout(res, 10*1024, 1000))
         {
-            if (client.Recv(res))
-            {
-                success = true;
-                std::cout << "RCV: " << res << std::endl;
-            }
-            else
-            {
-                res = "No any data received";
-            }
+            success = true;
+            std::cout << "RCV: " << res << std::endl;
         }
         else
         {

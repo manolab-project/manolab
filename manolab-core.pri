@@ -1,3 +1,13 @@
+
+# ------------------------------------------------------------------------------
+# GUI files
+# ------------------------------------------------------------------------------
+manolab_gui {
+
+SOURCES += QEngineModel.cpp
+HEADERS += QEngineModel.h
+}
+
 # ------------------------------------------------------------------------------
 # Device files
 # ------------------------------------------------------------------------------
@@ -19,6 +29,7 @@ SOURCES += \
     ExecuteCommand.cpp \
     ModbusMaster.cpp \
     InputText.cpp \
+    MiniCircuitsPwrSen.cpp \
     AcuDC.cpp \
     SoundPlayer.cpp \
     ShowImage.cpp
@@ -38,6 +49,7 @@ HEADERS += \
     Controllino.h \
     ManoLabServer.h \
     LonganCanModule.h \
+    MiniCircuitsPwrSen.h \
     IProcessEngine.h \
     ExecuteCommand.h \
     ModbusMaster.h \
@@ -69,6 +81,20 @@ VPATH += $$MANOLAB_ROOT_DIR/lib/serial
 INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/serial
 
 # ------------------------------------------------------------------------------
+# HID library
+# ------------------------------------------------------------------------------
+unix {
+SOURCES += hid_linux.c
+}
+windows {
+SOURCES += hid_win32.c
+}
+HEADERS += hidapi.h
+
+VPATH += $$MANOLAB_ROOT_DIR/lib/libhid
+INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/libhid
+
+# ------------------------------------------------------------------------------
 # USB library
 # ------------------------------------------------------------------------------
 #HEADERS += libusb.h
@@ -90,7 +116,8 @@ windows {
     VPATH += $$MANOLAB_ROOT_DIR/lib/ixxat/libixxat
     LIBS += -L$$MANOLAB_ROOT_DIR/lib/ixxat/libixxat
     QMAKE_LIBS +=
-    HEADERS += libixxat.h
+    HEADERS += libixxat.h CanDevice.h
+    SOURCES += CanDevice.cpp
 }
 
 # ------------------------------------------------------------------------------

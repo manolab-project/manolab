@@ -27,7 +27,7 @@ LabelPrinter::LabelPrinter()
 
 }
 
-#include "Base64.h"
+#include "Base64Util.h"
 
 Value LabelPrinter::StartPrint()
 {
