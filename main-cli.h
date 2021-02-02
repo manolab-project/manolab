@@ -98,9 +98,13 @@ public slots:
         do
         {
             LoadScript(engine, currentTestFile);
+
+            while(!finished); // wait load script finish event FIXME : add timeout
+            finished = false;
+
             engine.Start();
 
-            while(!finished);
+            while(!finished); // wait script finish event FIXME : add timeout
 
             std::this_thread::sleep_for(std::chrono::milliseconds(delayBetweenLoops));
 
@@ -132,7 +136,7 @@ private:
 
     void ReadSettings(ProcessEngine &engine)
     {
-        QSettings settings("novprod.ini", QSettings::IniFormat);
+        QSettings settings("manolab.ini", QSettings::IniFormat);
 
         settings.beginGroup("Application");
 
@@ -146,7 +150,7 @@ private:
 
     void WriteSettings(ProcessEngine &engine)
     {
-        QSettings settings("novprod.ini", QSettings::IniFormat);
+        QSettings settings("manolab.ini", QSettings::IniFormat);
 
         settings.beginGroup("Application");
         settings.setValue("workspace", engine.GetWorkspace().c_str());

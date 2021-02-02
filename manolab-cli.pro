@@ -68,7 +68,7 @@ windows {
 unix {
     DEFINES += USE_UNIX_OS
     LIBS += -ldl
-    QMAKE_LFLAGS += -static-libgcc -static-libstdc++ -lpthread
+    QMAKE_LFLAGS += -static-libgcc -static-libstdc++ -lpthread -ludev
 }
 
 ## Force using C++ compiler even for .c files
@@ -83,8 +83,8 @@ SOURCES += main-cli.cpp
 HEADERS += main-cli.h
    
 # ------------------------------------------------------------------------------
-# ICL library
+# Manolab library
 # ------------------------------------------------------------------------------
-MANOLAB_CORE_DIR = $$BASE_DIR
-include($$MANOLAB_CORE_DIR/manolab-core.pri)   
+MANOLAB_ROOT_DIR = $$BASE_DIR
+include($$MANOLAB_ROOT_DIR/manolab-core.pri)
 

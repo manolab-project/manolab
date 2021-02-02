@@ -32,9 +32,11 @@ SOURCES += \
     MiniCircuitsPwrSen.cpp \
     AcuDC.cpp \
     SoundPlayer.cpp \
-    ShowImage.cpp
+    ShowImage.cpp \
+    Zebra7500.cpp
 
 HEADERS += \
+    $$PWD/Plugin.h \
     VoltcraftPPS.h \
     Registry.hpp \
     BK8500.h \
@@ -57,7 +59,8 @@ HEADERS += \
     InputText.h \
     IModbusMaster.h \
     SoundPlayer.h \
-    ShowImage.h
+    ShowImage.h \
+    Zebra7500.h
 
 VPATH += $$MANOLAB_ROOT_DIR/devices
 VPATH += $$MANOLAB_ROOT_DIR/jsext
@@ -94,6 +97,19 @@ HEADERS += hidapi.h
 VPATH += $$MANOLAB_ROOT_DIR/lib/libhid
 INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/libhid
 
+
+# ------------------------------------------------------------------------------
+# Zebra7500 library
+# ------------------------------------------------------------------------------
+QMAKE_LIBDIR += $$MANOLAB_ROOT_DIR/lib/libzebrarfid
+LIBS += -lrfidapi32 -lutils -lltk -lxml2
+INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/libzebrarfid
+VPATH += $$MANOLAB_ROOT_DIR/lib/libzebrarfid
+
+DEFINES += UNICODE linux
+SOURCES += Zebra7500Util.cpp
+HEADERS += rfidapi.h Zebra7500Util.h
+
 # ------------------------------------------------------------------------------
 # USB library
 # ------------------------------------------------------------------------------
@@ -101,6 +117,7 @@ INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/libhid
 #VPATH += libusb
 #INCLUDEPATH += libusb
 #QMAKE_LIBDIR += libusb
+
 
 #windows {
 #    *-g++* {

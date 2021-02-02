@@ -25,21 +25,35 @@ ProcessEngine::ProcessEngine()
     // Add specific devices to a global list
     for (int i = 0; i < MAX_DEVICES; i++)
     {
-        mDeviceList.push_back(&mVoltcraftPPS[i]);
-        mDeviceList.push_back(&mModbusMaster[i]);
-        mDeviceList.push_back(&mBK8500[i]);
+        mDeviceList.push_back(std::make_shared<VoltCraftPPS>());
+        mDeviceList.push_back(std::make_shared<ModbusMaster>());
+        mDeviceList.push_back(std::make_shared<BK8500>());
 
 #ifdef USE_WINDOWS_OS
         mDeviceList.push_back(&mCanDevice[i]);
 #endif
-        mDeviceList.push_back(&mControllino[i]);
-        mDeviceList.push_back(&mAcuDC[i]);
+        mDeviceList.push_back(std::make_shared<Controllino>());
+        mDeviceList.push_back(std::make_shared<AcuDC>());
     }
 
-    mDeviceList.push_back(&mLabelPrinter);
-    mDeviceList.push_back(&mLonganCan);
-    mDeviceList.push_back(&mManoLabServer);
-    mDeviceList.push_back(&mMiniCircuitsPwrSen);
+    mDeviceList.push_back(std::make_shared<LabelPrinter>());
+    mDeviceList.push_back(std::make_shared<LonganCanModule>());
+    mDeviceList.push_back(std::make_shared<ManoLabServer>());
+    mDeviceList.push_back(std::make_shared<MiniCircuitsPwrSen>());
+    mDeviceList.push_back(std::make_shared<Zebra7500>());
+
+    // Création des dev internes
+
+    mDelays1s = std::make_shared<Delay1s>();
+  /*  mShowImage = std::make_shared<ShowImage()>;
+    std::shared_ptr<SoundPlayer> mSoundPlayer;
+    std::shared_ptr<PrintLog> mPrintLog;
+    std::shared_ptr<Delay1s> mDelays1s;
+    std::shared_ptr<InputText> mInputText;
+    std::shared_ptr<PrintReport> mPrintReport;
+    std::shared_ptr<ExecuteCommand> mExecCommand;
+*/
+
 
     for (auto & dev : mDeviceList)
     {
@@ -52,7 +66,7 @@ ProcessEngine::ProcessEngine()
     // Create the thread the first time only
     if (!mInitialized)
     {
-        mThread = std::thread(ProcessEngine::EntryPoint, this);
+        mThread = std::thread(&ProcessEngine::Run, this);
         mInitialized = true;
     }
 }
@@ -77,11 +91,14 @@ void ProcessEngine::Initialize()
     mDevices.clear();
     mTests.clear();
 
+    // FIXME NEW ARCH
+
     // C++ signals
-    mDelays1s.callback = std::bind( &ProcessEngine::Delay1sCallback, this, std::placeholders::_1 );
-    mInputText.callback = std::bind( &ProcessEngine::InputTextCallback, this, std::placeholders::_1, std::placeholders::_2 );
-    mLabelPrinter.callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
-    mShowImage.callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
+    mDelays1s->callback = std::bind( &ProcessEngine::Delay1sCallback, this, std::placeholders::_1 );
+  /*  mInputText->callback = std::bind( &ProcessEngine::InputTextCallback, this, std::placeholders::_1, std::placeholders::_2 );
+    mLabelPrinter->callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
+    mShowImage->callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
+    */
 }
 /*****************************************************************************/
 void ProcessEngine::CloseScriptContext()
@@ -131,15 +148,18 @@ bool ProcessEngine::InitializeScriptContext()
     mJsEngine.RegisterPrinter(this);
     mJsEngine.SetModuleSearchPath(mWorkspacePath + "/modules");
 
+    mJsEngine.RegisterFunction("delay1s", mDelays1s);
+/*
+ * // FIXME NEW ARCH
     mJsEngine.RegisterFunction("inputText", &mInputText);
-    mJsEngine.RegisterFunction("delay1s", &mDelays1s);
+
     mJsEngine.RegisterFunction("printLog", &mPrintLog);
     mJsEngine.RegisterFunction("printReport", &mPrintReport);
     mJsEngine.RegisterFunction("executeCommand", &mExecCommand);
     mJsEngine.RegisterFunction("playSound", &mSoundPlayer);
     mJsEngine.RegisterFunction("showImage", &mShowImage);
     mJsEngine.RegisterFunction("novprod", this);
-
+*/
     // Reload and reset all devices
     for (auto & dev : mDeviceList)
     {
@@ -217,7 +237,8 @@ void ProcessEngine::SelectOneTest(unsigned int index, bool enable)
 /*****************************************************************************/
 void ProcessEngine::AcceptInputText(const std::string &text, bool accepted)
 {
-    mInputText.SetText(text, accepted);
+    // FIXME NEW ARCH
+   // mInputText.SetText(text, accepted);
 }
 /*****************************************************************************/
 std::string ProcessEngine::GetLabelImage()
@@ -258,7 +279,8 @@ void ProcessEngine::CreateNewLogFiles()
     std::string logFileName = Util::GetFileName(mCurrentScript) + "_" + Util::CurrentDateTime("%Y%m%d_%H%M%S");
     Log::SetLogFileName("log_" + logFileName + ".csv");
 
-    mPrintReport.SetReportFullFileName(mWorkspacePath + Util::DIR_SEPARATOR + "reports/report_" + logFileName + ".txt");
+    // FIXME NEW ARCH
+  //  mPrintReport.SetReportFullFileName(mWorkspacePath + Util::DIR_SEPARATOR + "reports/report_" + logFileName + ".txt");
 }
 /*****************************************************************************/
 void ProcessEngine::LoadScript(const std::string &scriptFullPath)
@@ -297,12 +319,6 @@ std::vector<Test> ProcessEngine::GetTests()
 std::vector<std::string> ProcessEngine::GetConnList()
 {
     return mConnList;
-}
-/*****************************************************************************/
-void ProcessEngine::EntryPoint(void *pthis)
-{
-    ProcessEngine *pt = static_cast<ProcessEngine *>(pthis);
-    pt->Run();
 }
 /*****************************************************************************/
 void ProcessEngine::InputTextCallback(const std::string &text, bool showControls)
@@ -651,9 +667,10 @@ void ProcessEngine::Stop()
 {
     mQueue.Push(gEventStop);
 
+    // FIXME NEW ARCH
     // FIXME: call stop (or another method like Interrupt()?) to all devices
-    mDelays1s.Stop();
-    mInputText.Stop();
+    mDelays1s->Stop();
+    //mInputText.Stop();
 
     TLogInfo("Script stopped by user button");
 }
@@ -734,8 +751,9 @@ void ProcessEngine::TestLoop()
 
     CreateNewLogFiles();
 
-    mManoLabServer.SetProduct(mProduct);
-    mManoLabServer.SetReportFile(mPrintReport.GetReportFullFileName());
+    // FIXME NEW ARCH
+//    mManoLabServer.SetProduct(mProduct);
+//    mManoLabServer.SetReportFile(mPrintReport.GetReportFullFileName());
 
     for (const auto & test : mTests)
     {

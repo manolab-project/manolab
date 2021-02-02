@@ -30,6 +30,7 @@
 #include "InputText.h"
 #include "ShowImage.h"
 #include "MiniCircuitsPwrSen.h"
+#include "Zebra7500.h"
 
 #ifdef USE_WINDOWS_OS
 #include "CanDevice.h"
@@ -168,21 +169,24 @@ private:
     Controllino mControllino[MAX_DEVICES];
     AcuDC mAcuDC[MAX_DEVICES];
     LonganCanModule mLonganCan;
-    Delay1s mDelays1s;
-    PrintLog mPrintLog;
     LabelPrinter mLabelPrinter;
-    PrintReport mPrintReport;
-    ExecuteCommand mExecCommand;
-    SerialDevice mSerial;
-    SoundPlayer mSoundPlayer;
+    SerialDevice mSerial;    
     ManoLabServer mManoLabServer;
-    ShowImage mShowImage;
-    InputText mInputText;
-    std::vector<DeviceBase *> mDeviceList;
-    std::string mBufferedLabelImage;
     MiniCircuitsPwrSen mMiniCircuitsPwrSen;
+    Zebra7500 mZebra7500;
 
-    static void EntryPoint(void *pthis);
+    // Interne
+    std::shared_ptr<ShowImage> mShowImage;
+    std::shared_ptr<SoundPlayer> mSoundPlayer;
+    std::shared_ptr<PrintLog> mPrintLog;
+    std::shared_ptr<Delay1s> mDelays1s;
+    std::shared_ptr<InputText> mInputText;
+    std::shared_ptr<PrintReport> mPrintReport;
+    std::shared_ptr<ExecuteCommand> mExecCommand;
+
+    std::vector<std::shared_ptr<DeviceBase>> mDeviceList;
+    std::string mBufferedLabelImage;
+
     void Run();
     void Join();
     // From Observer<std::string>
