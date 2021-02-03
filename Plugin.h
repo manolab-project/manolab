@@ -8,7 +8,7 @@ class IPlugin;
 
 // Define the API version.
 // This value is incremented whenever there are ABI breaking changes.
-#define SCY_PLUGIN_API_VERSION 1
+#define MANOLAB_PLUGIN_API_VERSION 1
 
 // Shared library exports
 #if defined(SCY_WIN) && defined(SCY_SHARED_LIBRARY)
@@ -28,7 +28,7 @@ class IPlugin;
 #endif
 
 // Define a type for the static function pointer.
-typedef IPlugin* (*GetPluginFunc)();
+typedef IPlugin* (*InitFunc)();
 
 // Plugin details structure that's exposed to the application.
 struct PluginDetails {
@@ -37,27 +37,27 @@ struct PluginDetails {
     const char* className;
     const char* pluginName;
     const char* pluginVersion;
-    GetPluginFunc initializeFunc;
+    InitFunc Initialize;
 };
 
 #define SCY_STANDARD_PLUGIN_STUFF \
-    SCY_PLUGIN_API_VERSION,       \
+    MANOLAB_PLUGIN_API_VERSION,       \
     __FILE__
 
 #define SCY_PLUGIN(classType, pluginName, pluginVersion)     \
   extern "C" {                                               \
-      SCY_PLUGIN_EXPORT scy::pluga::IPlugin* getPlugin()     \
+      SCY_PLUGIN_EXPORT mano::IPlugin* Initialize()     \
       {                                                      \
           static classType singleton;                        \
           return &singleton;                                 \
       }                                                      \
-      SCY_PLUGIN_EXPORT scy::pluga::PluginDetails exports =  \
+      SCY_PLUGIN_EXPORT mano::PluginDetails exports =  \
       {                                                      \
           SCY_STANDARD_PLUGIN_STUFF,                         \
           #classType,                                        \
           pluginName,                                        \
           pluginVersion,                                     \
-          getPlugin,                                         \
+          Initialize,                                         \
       };                                                     \
   }
 

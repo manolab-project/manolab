@@ -54,6 +54,7 @@ ProcessEngine::ProcessEngine()
     std::shared_ptr<ExecuteCommand> mExecCommand;
 */
 
+    mPlugins.Load("zebrafx7500", "libzebrafx7500");
 
     for (auto & dev : mDeviceList)
     {

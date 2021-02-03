@@ -1,4 +1,4 @@
-CONFIG  += c++14  # qtquickcompiler
+CONFIG  += c++17 # qtquickcompiler
 CONFIG  += exceptions rtti
 QT      += core serialport printsupport multimedia
 
@@ -49,8 +49,8 @@ windows {
 
     *-g++* {
         # MinGW
-        QMAKE_CXXFLAGS_CXX14 = -std=c++14
-        QMAKE_CXXFLAGS_GNUCXX14 = -std=c++14
+        QMAKE_CXXFLAGS_CXX14 = -std=c++17
+        QMAKE_CXXFLAGS_GNUCXX14 = -std=c++17
 
         CXXFLAGS += -fexceptions
 
@@ -67,9 +67,11 @@ windows {
 
 unix {
     DEFINES += USE_UNIX_OS
-    LIBS += -ldl
-    QMAKE_LFLAGS += -static-libgcc -static-libstdc++ -lpthread -ludev
+   # QMAKE_LFLAGS_RPATH += ./modules
+    LIBS += -ldl -static-libgcc -static-libstdc++ -lpthread -ludev
 }
+
+#
 
 ## Force using C++ compiler even for .c files
 #QMAKE_CC = $$QMAKE_CXX

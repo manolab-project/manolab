@@ -28,3 +28,7 @@ novprod\.pro\.user\.4\.9-pre1
 *.10-pre1
 
 build-manoab/
+
+modules/
+
+plugins/zebrafx7500/build-zebrafx7500-Desktop_Qt_5_15_2_GCC_64bit-Debug/

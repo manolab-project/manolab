@@ -31,6 +31,7 @@
 #include "ShowImage.h"
 #include "MiniCircuitsPwrSen.h"
 #include "Zebra7500.h"
+#include "PluginController.h"
 
 #ifdef USE_WINDOWS_OS
 #include "CanDevice.h"
@@ -186,6 +187,8 @@ private:
 
     std::vector<std::shared_ptr<DeviceBase>> mDeviceList;
     std::string mBufferedLabelImage;
+
+    PluginController mPlugins;
 
     void Run();
     void Join();

@@ -13,6 +13,7 @@ HEADERS += QEngineModel.h
 # ------------------------------------------------------------------------------
 
 SOURCES += \
+    $$PWD/PluginController.cpp \
     VoltcraftPPS.cpp \
     BK8500.cpp \
     DeviceBase.cpp \
@@ -36,7 +37,9 @@ SOURCES += \
     Zebra7500.cpp
 
 HEADERS += \
+    $$PWD/IPlugin.h \
     $$PWD/Plugin.h \
+    $$PWD/PluginController.h \
     VoltcraftPPS.h \
     Registry.hpp \
     BK8500.h \
