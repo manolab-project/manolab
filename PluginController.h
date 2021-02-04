@@ -10,7 +10,7 @@ class PluginController
 {
 public:
     PluginController();
-    void Load(const std::string &dir, const std::string &name);
+    void Load(const std::string &name);
 
 private:
     std::vector<SharedLibrary> mLibs;

@@ -13,6 +13,8 @@
 #include "GetOptions.h"
 #include "serial.h"
 #include "ProcessEngine.h"
+#include "JsonReader.h"
+#include "JsonWriter.h"
 
 #ifdef USE_WINDOWS_OS
 #include <windows.h>
@@ -84,4 +86,229 @@ int main(int argc, char *argv[])
     QTimer::singleShot(0, task, SLOT(run()));
 
     return app.exec();
+}
+
+void Task::run()
+{
+    // Do processing here
+
+
+    ReadSettings(engine);
+    WriteSettings(engine);
+
+    std::string workspaceDir = opt.GetOption("-w");
+
+    if (workspaceDir.size() > 0)
+    {
+        engine.SetWorkspace(workspaceDir);
+        std::cout << "Switched workspace to: " + workspaceDir << std::endl;
+    }
+
+    std::string p = engine.GetWorkspace() + "/files";
+
+    filesPath = p.c_str();
+    QList<QString> files;
+
+    QDir directory(filesPath);
+    files = directory.entryList(QStringList() << "*.js", QDir::Files);
+
+    std::string currentTestFile = opt.GetOption("-f");
+    std::cout << "Running test file: " << currentTestFile << std::endl;
+
+    std::function< void(int, const std::vector<Value>&) > cb = std::bind( &Task::EngineEvents, this, std::placeholders::_1 , std::placeholders::_2 );
+    engine.RegisterEventEmitter(cb);
+
+    for (const auto & f : files)
+    {
+        std::cout << f.toStdString() << std::endl;
+    }
+
+    std::string loopDelay = opt.GetOption("-d");
+    int delayBetweenLoops = 500;
+
+    if (loopDelay.size() > 0)
+    {
+        delayBetweenLoops = Util::FromString<int>(loopDelay);
+        engine.SetWorkspace(workspaceDir);
+        std::cout << "Using delay between loops: " + std::to_string(delayBetweenLoops) << "ms" << std::endl;
+    }
+
+    std::string loopCounter = opt.GetOption("-l");
+    int loopsMax = -1;
+
+    if (loopCounter.size() > 0)
+    {
+        loopsMax = Util::FromString<int>(loopCounter);
+        engine.SetWorkspace(workspaceDir);
+        std::cout << "Number of script executions: " + std::to_string(loopsMax) << std::endl;
+    }
+
+    if (loopsMax <= 0)
+    {
+        std::cout << "Looping forever " << std::endl;
+    }
+
+    int loops = 0;
+    bool processEnded = false;
+
+    do
+    {
+        LoadScript(engine, currentTestFile);
+
+        while(!finished); // wait load script finish event FIXME : add timeout
+        finished = false;
+
+        engine.Start();
+
+        while(!finished); // wait script finish event FIXME : add timeout
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(delayBetweenLoops));
+
+        loops++;
+
+        if (loopsMax > 0)
+        {
+            if (loops >= loopsMax)
+            {
+                processEnded = true;
+            }
+        }
+    }
+    while(!processEnded);
+
+
+    emit ended();
+}
+
+void Task::ReadSettings(ProcessEngine &engine)
+{
+    std::string defaultWorkspace = Util::HomePath() + Util::DIR_SEPARATOR + ".manloab";
+    std::string workspace = defaultWorkspace;
+    JsonReader confFile;
+    JsonValue json;
+
+    if (confFile.ParseFile(json, "manolab.json"))
+    {
+        workspace = json.FindValue("workspace").GetString();
+    }
+
+    if (!Util::FolderExists(workspace))
+    {
+        workspace = defaultWorkspace;
+        Util::Mkdir(workspace);
+    }
+
+    std::cout << "Current workspace is: " << workspace << std::endl;
+
+    engine.SetWorkspace(workspace);
+    WriteSettings(engine);
+}
+
+void Task::WriteSettings(const ProcessEngine &engine)
+{
+    JsonObject json;
+    json.AddValue("workspace", engine.GetWorkspace());
+    JsonWriter::SaveToFile(json, "manolab.json");
+}
+
+void Task::LoadScript(ProcessEngine &engine, const std::string &filename)
+{
+    QString filePath = filesPath + "/" + filename.c_str();
+
+    if (QFileInfo::exists(filePath))
+    {
+        engine.LoadScript(filePath.toStdString());
+    }
+    else
+    {
+        TLogError("cannot read input file");
+    }
+}
+
+void Task::EngineEvents(int signal, const std::vector<Value> &args)
+{
+    switch (signal)
+    {
+
+    case ProcessEngine::SIG_DELAY_1S:
+        if (args.size() > 0)
+        {
+            //            QMetaObject::invokeMethod(this, "sigDelay", Qt::QueuedConnection,
+            //                                      Q_ARG(int, args[0].GetInteger()));
+
+        }
+        break;
+    case ProcessEngine::SIG_TEST_NUMBER:
+        if (args.size() > 1)
+        {
+            //            QMetaObject::invokeMethod(this, "sigTest", Qt::QueuedConnection,
+            //                                      Q_ARG(int, args[0].GetInteger()),
+            //                                      Q_ARG(int, args[1].GetInteger())
+            //                                      );
+        }
+        break;
+    case ProcessEngine::SIG_STEP_NUMBER:
+        if (args.size() >= 2)
+        {
+            //            QMetaObject::invokeMethod(this, "sigStep", Qt::QueuedConnection,
+            //                                      Q_ARG(QString, args[0].GetString().c_str()),
+            //                                      Q_ARG(bool, args[1].GetBool()));
+        }
+        break;
+    case ProcessEngine::SIG_TEST_FINISHED:
+        //        QMetaObject::invokeMethod(this, "sigFinished", Qt::QueuedConnection);
+        finished = true;
+        break;
+
+    case ProcessEngine::SIG_MESSAGE:
+        if (args.size() > 0)
+        {
+            std::cout << args[0].GetString() << std::endl;
+            //            QMetaObject::invokeMethod(this, "sigMessage", Qt::QueuedConnection,
+            //                                      Q_ARG(QString, args[0].GetString().c_str()));
+        }
+        break;
+
+    case ProcessEngine::SIG_LOADED:
+        //        QMetaObject::invokeMethod(this, "sigScriptLoaded", Qt::QueuedConnection);
+        break;
+
+    case ProcessEngine::SIG_INPUT_TEXT:
+        if (args.size() >= 2)
+        {
+            //            QMetaObject::invokeMethod(this, "sigInputText", Qt::QueuedConnection,
+            //                                      Q_ARG(QString, args[0].GetString().c_str()),
+            //                                      Q_ARG(bool, args[1].GetBool()));
+        }
+        break;
+
+    case ProcessEngine::SIG_AUTO_TEST_FINISHED:
+        //        BuildComChannelModel(); // refresh model
+        //        // THEN, update UI
+        //        QMetaObject::invokeMethod(this, "sigAutoTestFinished", Qt::QueuedConnection);
+        break;
+
+    case ProcessEngine::SIG_SHOW_IMAGE:
+        //        QMetaObject::invokeMethod(this, "sigShowImage", Qt::QueuedConnection,
+        //                                  Q_ARG(bool, args[0].GetBool()));
+        break;
+
+    case ProcessEngine::SIG_TEST_SKIPPED:
+        //        QMetaObject::invokeMethod(this, "sigTestSkipped", Qt::QueuedConnection);
+        break;
+
+    case ProcessEngine::SIG_TEST_ENDED:
+        //        QMetaObject::invokeMethod(this, "sigTestEnded", Qt::QueuedConnection);
+        break;
+
+    case ProcessEngine::SIG_TEST_ERROR:
+        //        QMetaObject::invokeMethod(this, "sigTestError", Qt::QueuedConnection);
+        break;
+
+    default:
+        TLogWarning("Un-managed signal: " + std::to_string(signal));
+        break;
+    }
+
+    //QMetaObject::invokeMethod(this, "sigRunningChanged", Qt::QueuedConnection);
 }

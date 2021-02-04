@@ -1,0 +1,8 @@
+{
+    "workspace": "/home/anthony/git/manolab-project/workspace/",
+    "plugins": [
+        {
+            "lib": "libzebrafx7500"
+        }
+    ]
+}

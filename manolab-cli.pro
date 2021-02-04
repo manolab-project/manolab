@@ -67,7 +67,7 @@ windows {
 
 unix {
     DEFINES += USE_UNIX_OS
-   # QMAKE_LFLAGS_RPATH += ./modules
+    QMAKE_RPATHDIR += $ORIGIN/plugins
     LIBS += -ldl -static-libgcc -static-libstdc++ -lpthread -ludev
 }
 

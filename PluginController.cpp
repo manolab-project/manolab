@@ -10,12 +10,11 @@ PluginController::PluginController()
 
 }
 
-void PluginController::Load(const std::string &dir, const std::string &name)
+void PluginController::Load(const std::string &name)
 {
     // Set the plugin shared library location
     std::string fullPath = Util::GetCurrentDirectory() +
-            Util::DIR_SEPARATOR + "modules"  +
-            Util::DIR_SEPARATOR + dir +
+            Util::DIR_SEPARATOR + "plugins"  +
             Util::DIR_SEPARATOR + name;
     #if WIN32
         # ifdef _DEBUG
