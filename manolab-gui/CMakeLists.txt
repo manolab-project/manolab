@@ -6,6 +6,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#add_subdirectory(glfw)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/glfw/lib-mingw-w64)
+include_directories(glfw/include)
+
 find_package(OpenGL REQUIRED)
 
 add_executable(manolab-gui
@@ -18,13 +22,17 @@ add_executable(manolab-gui
     imgui/backends/imgui_impl_opengl2.cpp
 )
 
-target_link_libraries(manolab-gui glfw OpenGL::GL)
+# add_definitions(-DUSE_UNIX_OS)
+add_link_options(-static-libgcc -static-libstdc++ -lpthread)
+
+target_link_libraries(manolab-gui glfw3 OpenGL::GL)
 
 target_include_directories(
     manolab-gui
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
+
 )
 
 
