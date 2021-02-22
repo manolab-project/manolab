@@ -205,7 +205,7 @@ bool VoltCraftPPS::Request(const std::string &request, std::string &response)
     {
         if (mPort.Write(request) == SerialPort::cPortWriteSuccess)
         {
-            if (mPort.Read(response, 2) == SerialPort::cPortReadSuccess)
+            if (mPort.Read(response) == SerialPort::cPortReadSuccess)
             {
                 //std::cout << response << std::endl;
                 if (response.find("OK\r") != std::string::npos)

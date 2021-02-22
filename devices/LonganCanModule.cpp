@@ -104,7 +104,7 @@ int LonganCanModule::recv(unsigned long *id, uchar *buf)
 {
     std::string readData;
   //  if(canSerial->available())
-    if (mPort.Read(readData, 1) == SerialPort::cPortReadSuccess)
+    if (mPort.Read(readData) == SerialPort::cPortReadSuccess)
     {
 //        unsigned long timer_s = millis();
         
@@ -171,7 +171,7 @@ unsigned char LonganCanModule::cmdOk(const char *cmd)
 //            timer_s = millis();
 //        }
         std::string readData;
-        if (mPort.Read(readData, 1) == SerialPort::cPortReadSuccess)
+        if (mPort.Read(readData) == SerialPort::cPortReadSuccess)
         {
 
 
@@ -234,7 +234,7 @@ void LonganCanModule::clear()
 //    }
 
     std::string readData;
-    (void) mPort.Read(readData, 1);
+    (void) mPort.Read(readData);
 }
 
 unsigned char LonganCanModule::enterSettingMode()

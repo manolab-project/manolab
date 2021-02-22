@@ -6,7 +6,7 @@
 #include "JsonReader.h"
 #include "ProcessEngine.h"
 #include "Util.h"
-#include "SerialPort.h"
+#include "CSerialPort.h"
 #include "SoundPlayer.h"
 
 static const std::uint32_t gEventNone       = 0U;

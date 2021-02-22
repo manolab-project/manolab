@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "DeviceBase.h"
-#include "SerialPort.h"
+#include "CSerialPort.h"
 
 class VoltCraftPPS : public DeviceBase
 {

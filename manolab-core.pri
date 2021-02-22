@@ -22,7 +22,6 @@ SOURCES += \
     PrintReport.cpp \
     SerialDevice.cpp \
     LabelPrinter.cpp \
-    SerialPort.cpp \
     Controllino.cpp \
     ManoLabServer.cpp \
     LonganCanModule.cpp \
@@ -45,7 +44,6 @@ HEADERS += \
     PrintReport.h \
     SerialDevice.h \
     LabelPrinter.h \
-    SerialPort.h \
     Controllino.h \
     ManoLabServer.h \
     LonganCanModule.h \
@@ -74,11 +72,16 @@ include($$ICL_DIR/icl.pri)
 # ------------------------------------------------------------------------------
 # Serial library
 # ------------------------------------------------------------------------------
-SOURCES += serial.c
-HEADERS += serial.h
+SOURCES += serial.c CSerialPort.cpp
+HEADERS += serial.h CSerialPort.h
 
 VPATH += $$MANOLAB_ROOT_DIR/lib/serial
 INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/serial
+
+SOURCES += serialport.c windows.c sp_timing.c
+DEFINES += LIBSERIALPORT_MSBUILD
+VPATH += $$MANOLAB_ROOT_DIR/lib/libserialport
+INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/libserialport
 
 # ------------------------------------------------------------------------------
 # HID library

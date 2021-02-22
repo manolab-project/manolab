@@ -329,8 +329,7 @@ bool BK8500::SendToDevice(const std::string &packet, std::string &dataRead)
     {
         if (mPort.Write(packet) == SerialPort::cPortWriteSuccess)
         {
-            // 2 seconds timeout: FIXME: make it as a setting
-            if (mPort.Read(dataRead, 2) == SerialPort::cPortReadSuccess)
+            if (mPort.Read(dataRead) == SerialPort::cPortReadSuccess)
             {
                 success = true;
             }

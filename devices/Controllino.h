@@ -4,7 +4,7 @@
 
 #include <vector>
 #include "DeviceBase.h"
-#include "SerialPort.h"
+#include "CSerialPort.h"
 #include "modbus.h"
 
 class Controllino : public DeviceBase

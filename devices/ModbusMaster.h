@@ -3,7 +3,7 @@
 
 #include "modbus.h"
 #include "DeviceBase.h"
-#include "SerialPort.h"
+#include "CSerialPort.h"
 #include "IModbusMaster.h"
 
 class ModbusMaster : public DeviceBase, public IModbusMaster

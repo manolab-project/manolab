@@ -2,7 +2,7 @@
 #define LONGAN_CAN_MODULE_H
 // ID3 ID2 ID1 ID0 EXT RTR DTA0 DTA1 DTA2 DTA3 DTA4 DTA5 DTA6 DTA7
 
-#include "SerialPort.h"
+#include "CSerialPort.h"
 #include "DeviceBase.h"
 
 #define uchar unsigned char
