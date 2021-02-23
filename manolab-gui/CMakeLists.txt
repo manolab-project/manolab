@@ -14,11 +14,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #    set(GLFW_LIBRARY glfw3)
 #endif (WIN32)
 
+# The second parameter is output directory for the results of the targets from that subdirectory.
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ build_manolab)
+
 find_package(OpenGL REQUIRED)
 
 add_executable(manolab-gui
     gl3w/GL/gl3w.c
     main.cpp
+    ConsoleWindow.cpp
+    Gui.h
+    Gui.cpp
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_tables.cpp
@@ -31,11 +37,13 @@ add_executable(manolab-gui
 add_link_options(-static-libgcc -static-libstdc++ -lpthread)
 
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GL3W)
+add_definitions(-Dcimg_display=0)
 
 target_link_libraries(manolab-gui
     dl
     SDL2
     glfw
+
     OpenGL::GL)
 
 target_include_directories(
