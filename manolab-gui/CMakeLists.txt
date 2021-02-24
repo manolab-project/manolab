@@ -23,14 +23,19 @@ add_executable(manolab-gui
     gl3w/GL/gl3w.c
     main.cpp
     ConsoleWindow.cpp
+    ConsoleWindow.h
     Gui.h
     Gui.cpp
+    CodeEditor.cpp
+    CodeEditor.h
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_tables.cpp
     imgui/imgui_widgets.cpp
     imgui/backends/imgui_impl_sdl.cpp
     imgui/backends/imgui_impl_opengl3.cpp
+    ImGuiColorTextEdit/TextEditor.cpp
+    ImGuiColorTextEdit/TextEditor.h
 )
 
 # add_definitions(-DUSE_UNIX_OS)
@@ -43,7 +48,6 @@ target_link_libraries(manolab-gui
     dl
     SDL2
     glfw
-
     OpenGL::GL)
 
 target_include_directories(
@@ -53,6 +57,7 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/gl3w
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
+    ${CMAKE_CURRENT_SOURCE_DIR}/ImGuiColorTextEdit
 )
 
 

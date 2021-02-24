@@ -7,6 +7,7 @@
 #include "Gui.h"
 #include "ConsoleWindow.h"
 #include "imgui.h"
+#include "CodeEditor.h"
 
 void SetupFileMenu()
 {
@@ -97,7 +98,9 @@ int main(int, char**)
 
     DrawImageWindow imgWindow;
     ConsoleWindow console;
+    CodeEditor editor;
 
+    editor.Initialize();
     imgWindow.Initialize();
 
     while (!done)
@@ -113,7 +116,9 @@ int main(int, char**)
 
         imgWindow.Draw("ImageWindow", nullptr);
 
-         const char *columns[] = { "Jean", "57", "2", "19min 54s" };
+        editor.Draw("Code Editor", nullptr);
+
+        const char *columns[] = { "Jean", "57", "2", "19min 54s" };
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
