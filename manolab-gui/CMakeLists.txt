@@ -35,10 +35,22 @@ add_executable(manolab-gui
     main.cpp
     ConsoleWindow.cpp
     ConsoleWindow.h
+
+    TaskListWindow.cpp
+    TaskListWindow.h
+
+    ImageWindow.cpp
+    ImageWindow.h
+
+    MainWindow.cpp
+    MainWindow.h
+
     Gui.h
     Gui.cpp
+
     CodeEditor.cpp
     CodeEditor.h
+
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
     imgui/imgui_tables.cpp
@@ -47,10 +59,11 @@ add_executable(manolab-gui
     imgui/backends/imgui_impl_opengl3.cpp
     ImGuiColorTextEdit/TextEditor.cpp
     ImGuiColorTextEdit/TextEditor.h
+    ImGuiFileDialog/ImGuiFileDialog.cpp
 )
 
 # add_definitions(-DUSE_UNIX_OS)
-add_link_options(-static-libgcc -static-libstdc++ -lpthread)
+add_link_options(-static-libgcc -static-libstdc++)
 
 add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GL3W)
 add_definitions(-Dcimg_display=0)
@@ -73,6 +86,7 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
     ${CMAKE_CURRENT_SOURCE_DIR}/ImGuiColorTextEdit
+    ${CMAKE_CURRENT_SOURCE_DIR}/ImGuiFileDialog
     ${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 

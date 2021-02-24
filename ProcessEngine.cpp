@@ -51,6 +51,7 @@ ProcessEngine::ProcessEngine()
     mPrintLog = std::make_shared<PrintLog>();
     mPrintReport = std::make_shared<PrintReport>();
     mExecCommand = std::make_shared<ExecuteCommand>();
+    mEnvironment = std::make_shared<Environment>();
 
     // FIXME
 //     mDeviceList.push_back(std::make_shared<LabelPrinter>());
