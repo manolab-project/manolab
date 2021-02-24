@@ -6,8 +6,6 @@
 #include "JsonReader.h"
 #include "ProcessEngine.h"
 #include "Util.h"
-#include "SerialPort.h"
-#include "SoundPlayer.h"
 
 
 #ifndef EXE_NAME
@@ -44,23 +42,24 @@ ProcessEngine::ProcessEngine()
         mDeviceList.push_back(std::make_shared<AcuDC>());
     }
 
-    mDeviceList.push_back(std::make_shared<LabelPrinter>());
     mDeviceList.push_back(std::make_shared<LonganCanModule>());
     mDeviceList.push_back(std::make_shared<ManoLabServer>());
     mDeviceList.push_back(std::make_shared<MiniCircuitsPwrSen>());
 
     // Création des dev internes
-
     mDelays1s = std::make_shared<Delay1s>();
-    mShowImage = std::make_shared<ShowImage>();
-    mSoundPlayer = std::make_shared<SoundPlayer>();
     mPrintLog = std::make_shared<PrintLog>();
-    mInputText = std::make_shared<InputText>();
     mPrintReport = std::make_shared<PrintReport>();
     mExecCommand = std::make_shared<ExecuteCommand>();
 
+    // FIXME
+//     mDeviceList.push_back(std::make_shared<LabelPrinter>());
+//    mInputText = std::make_shared<InputText>();
+//    mShowImage = std::make_shared<ShowImage>();
+//    mSoundPlayer = std::make_shared<SoundPlayer>();
+
     //Création des plugins
-    mPlugins.Load("libzebrafx7500");
+//    mPlugins.Load("libzebrafx7500");
 
     for (auto & dev : mDeviceList)
     {
@@ -102,9 +101,11 @@ void ProcessEngine::Initialize()
 
     // C++ signals
     mDelays1s->callback = std::bind( &ProcessEngine::Delay1sCallback, this, std::placeholders::_1 );
-    mInputText->callback = std::bind( &ProcessEngine::InputTextCallback, this, std::placeholders::_1, std::placeholders::_2 );
-    mLabelPrinter.callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
-    mShowImage->callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
+
+    // FIXME
+//    mInputText->callback = std::bind( &ProcessEngine::InputTextCallback, this, std::placeholders::_1, std::placeholders::_2 );
+//    mLabelPrinter.callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
+//    mShowImage->callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
 
 }
 /*****************************************************************************/
@@ -156,13 +157,15 @@ bool ProcessEngine::InitializeScriptContext()
     mJsEngine.SetModuleSearchPath(mEnvironment->GetWorkspace() + "/modules");
 
     mJsEngine.RegisterFunction("delay1s", mDelays1s);
-    mJsEngine.RegisterFunction("inputText", mInputText);
     mJsEngine.RegisterFunction("printLog", mPrintLog);
     mJsEngine.RegisterFunction("printReport", mPrintReport);
     mJsEngine.RegisterFunction("executeCommand", mExecCommand);
-    mJsEngine.RegisterFunction("playSound", mSoundPlayer);
-    mJsEngine.RegisterFunction("showImage", mShowImage);
     mJsEngine.RegisterFunction(EXE_NAME, mEnvironment);
+
+    // FIXME
+//    mJsEngine.RegisterFunction("inputText", mInputText);
+//    mJsEngine.RegisterFunction("playSound", mSoundPlayer);
+//    mJsEngine.RegisterFunction("showImage", mShowImage);
 
     // Reload and reset all devices
     for (auto & dev : mDeviceList)
@@ -241,7 +244,8 @@ void ProcessEngine::SelectOneTest(unsigned int index, bool enable)
 /*****************************************************************************/
 void ProcessEngine::AcceptInputText(const std::string &text, bool accepted)
 {
-   mInputText->SetText(text, accepted);
+    // FIXME
+//   mInputText->SetText(text, accepted);
 }
 /*****************************************************************************/
 std::string ProcessEngine::GetLabelImage()
@@ -252,16 +256,17 @@ std::string ProcessEngine::GetLabelImage()
 void ProcessEngine::SetWorkspace(const std::string &path)
 {
     mEnvironment->SetWorkspace(path);
-
-    SoundPlayer::mWorkspacePath = path;
-    ShowImage::mWorkspacePath = path;
-    LabelPrinter::mWorkspacePath = path;
     Log::SetLogPath(path + Util::DIR_SEPARATOR + "logs");
 }
 /*****************************************************************************/
 void ProcessEngine::SetPlugins(const std::vector<std::string> &plugins)
 {
     mPlugins.SetPlugins(plugins);
+}
+/*****************************************************************************/
+std::string ProcessEngine::GetWorkspace() const
+{
+    return mEnvironment->GetWorkspace();
 }
 /*****************************************************************************/
 IModbusMaster *ProcessEngine::GetModbusChannel(const std::string &id)

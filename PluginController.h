@@ -7,13 +7,13 @@
 #include "IPlugin.h"
 #include "Plugin.h"
 #include "SharedLibrary.h"
-#include "ProcessEngine.h"
+
 
 class PluginController
 {
 public:
     PluginController();
-    void Load(ProcessEngine &process);
+    void Load();
 
     void SetPlugins(const std::vector<std::string> &plugins);
 

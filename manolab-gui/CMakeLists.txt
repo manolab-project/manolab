@@ -6,6 +6,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_VERBOSE_MAKEFILE on )
+
 #set(GLFW_LIBRARY glfw)
 
 #if (WIN32)
@@ -15,9 +17,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #endif (WIN32)
 
 # The second parameter is output directory for the results of the targets from that subdirectory.
-# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ build_manolab)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../ build_manolab)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../lib/icl build_icl)
 
 find_package(OpenGL REQUIRED)
+
+if(UNIX AND NOT APPLE)
+    add_definitions(-DUSE_UNIX_OS)
+endif()
+
+if(WIN32)
+    add_definitions(-DUSE_WINDOWS_OS)
+endif()
 
 add_executable(manolab-gui
     gl3w/GL/gl3w.c
@@ -45,9 +56,13 @@ add_definitions(-DIMGUI_IMPL_OPENGL_LOADER_GL3W)
 add_definitions(-Dcimg_display=0)
 
 target_link_libraries(manolab-gui
+    manolab
+    icl
     dl
     SDL2
     glfw
+    pthread
+    udev
     OpenGL::GL)
 
 target_include_directories(
@@ -58,6 +73,7 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
     ${CMAKE_CURRENT_SOURCE_DIR}/ImGuiColorTextEdit
+    ${CMAKE_CURRENT_SOURCE_DIR}/../
 )
 
 

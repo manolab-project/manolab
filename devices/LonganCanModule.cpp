@@ -284,7 +284,7 @@ unsigned char LonganCanModule::setMask(unsigned long *dta)
     {
         make8zerochar(8, __str, dta[1+2*i]);
         //Serial.println(__str);
-        sprintf(str_tmp, "AT+M=[%d][%d][", i, dta[2*i]);
+        sprintf(str_tmp, "AT+M=[%d][%d][", i, (int)dta[2*i]);
         for(int i=0; i<8; i++)
         {
             str_tmp[12+i] = __str[i];
@@ -321,7 +321,7 @@ unsigned char LonganCanModule::setFilt(unsigned long *dta)
     {
         make8zerochar(8, __str, dta[1+2*i]);
         //Serial.println(__str);
-        sprintf(str_tmp, "AT+F=[%d][%d][", i, dta[2*i]);
+        sprintf(str_tmp, "AT+F=[%d][%d][", i, (int)dta[2*i]);
         for(int i=0; i<8; i++)
         {
             str_tmp[12+i] = __str[i];
@@ -355,7 +355,7 @@ baud rate(b/s)	9600	19200	38400	57600	115200
 unsigned char LonganCanModule::factorySetting()
 {
     // check baudrate
-    unsigned long baud[5] = {9600, 19200, 38400, 57600, 115200};
+//    unsigned long baud[5] = {9600, 19200, 38400, 57600, 115200};
     
     for(int i=0; i<5; i++)
     {

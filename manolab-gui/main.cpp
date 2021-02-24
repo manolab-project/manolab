@@ -8,6 +8,7 @@
 #include "ConsoleWindow.h"
 #include "imgui.h"
 #include "CodeEditor.h"
+#include "ProcessEngine.h"
 
 void SetupFileMenu()
 {
@@ -95,6 +96,8 @@ int main(int, char**)
 
     // Main loop
     bool done = false;
+
+    ProcessEngine engine;
 
     DrawImageWindow imgWindow;
     ConsoleWindow console;

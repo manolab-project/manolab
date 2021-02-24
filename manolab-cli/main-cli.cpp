@@ -180,46 +180,7 @@ void Task::run()
     emit ended();
 }
 
-void Task::ReadSettings(ProcessEngine &engine)
-{
-    std::string defaultWorkspace = Util::HomePath() + Util::DIR_SEPARATOR + ".manloab";
-    std::string workspace = defaultWorkspace;
-    JsonReader confFile;
-    JsonValue json;
 
-    if (confFile.ParseFile(json, "manolab.json"))
-    {
-        workspace = json.FindValue("workspace").GetString();
-
-        JsonArray plugins = json.FindValue("plugins").GetArray();
-
-        std::vector<std::string> pList;
-        for (const auto & p : plugins)
-        {
-            pList.push_back(p.GetString());
-        }
-
-        engine.SetPlugins(pList);
-    }
-
-    if (!Util::FolderExists(workspace))
-    {
-        workspace = defaultWorkspace;
-        Util::Mkdir(workspace);
-    }
-
-    std::cout << "Current workspace is: " << workspace << std::endl;
-
-    engine.SetWorkspace(workspace);
-    WriteSettings(engine);
-}
-
-void Task::WriteSettings(const ProcessEngine &engine)
-{
-    JsonObject json;
-    json.AddValue("workspace", engine.GetWorkspace());
-    JsonWriter::SaveToFile(json, "manolab.json");
-}
 
 void Task::LoadScript(ProcessEngine &engine, const std::string &filename)
 {

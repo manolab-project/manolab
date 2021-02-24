@@ -1,5 +1,5 @@
-#ifndef MANUFENGINE_H
-#define MANUFENGINE_H
+#ifndef PROCESS_ENGINE_H
+#define PROCESS_ENGINE_H
 
 #include <vector>
 #include <string>
@@ -18,8 +18,6 @@
 #include "PrintReport.h"
 #include "SerialDevice.h"
 #include "AcuDC.h"
-#include "LabelPrinter.h"
-#include "SoundPlayer.h"
 #include "BK8500.h"
 #include "Controllino.h"
 #include "ManoLabServer.h"
@@ -27,11 +25,15 @@
 #include "ExecuteCommand.h"
 #include "ModbusMaster.h"
 #include "IProcessEngine.h"
-#include "InputText.h"
-#include "ShowImage.h"
 #include "MiniCircuitsPwrSen.h"
 #include "PluginController.h"
 #include "Environment.h"
+
+// FIXME Modules Qt à porter
+//#include "LabelPrinter.h"
+//#include "SoundPlayer.h"
+//#include "InputText.h"
+//#include "ShowImage.h"
 
 #ifdef USE_WINDOWS_OS
 #include "CanDevice.h"
@@ -128,10 +130,11 @@ public:
     void SelectOneTest(unsigned int index, bool enable);
     void AcceptInputText(const std::string &text, bool accepted);
     std::string GetLabelImage();
-    void SetWorkspace(const std::string &path);
 
+    // IProcessEngine
     void SetPlugins(const std::vector<std::string> &plugins);
-
+    virtual std::string GetWorkspace() const;
+    void SetWorkspace(const std::string &path);
     IModbusMaster *GetModbusChannel(const std::string &id);
 
 private:
@@ -166,20 +169,22 @@ private:
     Controllino mControllino[MAX_DEVICES];
     AcuDC mAcuDC[MAX_DEVICES];
     LonganCanModule mLonganCan;
-    LabelPrinter mLabelPrinter;
+
     SerialDevice mSerial;    
     ManoLabServer mManoLabServer;
     MiniCircuitsPwrSen mMiniCircuitsPwrSen;
 
     // Interne
-    std::shared_ptr<ShowImage> mShowImage;
-    std::shared_ptr<SoundPlayer> mSoundPlayer;
     std::shared_ptr<PrintLog> mPrintLog;
     std::shared_ptr<Delay1s> mDelays1s;
-    std::shared_ptr<InputText> mInputText;
     std::shared_ptr<PrintReport> mPrintReport;
     std::shared_ptr<ExecuteCommand> mExecCommand;
     std::shared_ptr<Environment> mEnvironment;
+
+//    LabelPrinter mLabelPrinter;
+//    std::shared_ptr<InputText> mInputText;
+//    std::shared_ptr<ShowImage> mShowImage;
+//    std::shared_ptr<SoundPlayer> mSoundPlayer;
 
     std::vector<std::shared_ptr<DeviceBase>> mDeviceList;
     std::string mBufferedLabelImage;
@@ -206,4 +211,4 @@ private:
     void DoLoadScript();
 };
 
-#endif // MANUFENGINE_H
+#endif // PROCESS_ENGINE_H

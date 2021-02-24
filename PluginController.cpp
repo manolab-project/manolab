@@ -7,7 +7,7 @@ PluginController::PluginController()
 
 }
 
-void PluginController::Load(ProcessEngine &process)
+void PluginController::Load()
 {
 }
 

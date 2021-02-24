@@ -34,3 +34,5 @@ modules/
 plugins/zebrafx7500/build-zebrafx7500-Desktop_Qt_5_15_2_GCC_64bit-Debug/
 
 build-manolab-gui-Desktop_Qt_5_15_2_GCC_64bit-Debug/
+
+imgui.ini
