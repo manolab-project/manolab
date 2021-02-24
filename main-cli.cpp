@@ -190,6 +190,16 @@ void Task::ReadSettings(ProcessEngine &engine)
     if (confFile.ParseFile(json, "manolab.json"))
     {
         workspace = json.FindValue("workspace").GetString();
+
+        JsonArray plugins = json.FindValue("plugins").GetArray();
+
+        std::vector<std::string> pList;
+        for (const auto & p : plugins)
+        {
+            pList.push_back(p.GetString());
+        }
+
+        engine.SetPlugins(pList);
     }
 
     if (!Util::FolderExists(workspace))

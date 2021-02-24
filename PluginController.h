@@ -2,18 +2,31 @@
 #define PLUGINCONTROLLER_H
 
 #include <string>
-#include <vector>
+#include <map>
 #include "SharedLibrary.h"
-
+#include "IPlugin.h"
+#include "Plugin.h"
+#include "SharedLibrary.h"
+#include "ProcessEngine.h"
 
 class PluginController
 {
 public:
     PluginController();
-    void Load(const std::string &name);
+    void Load(ProcessEngine &process);
+
+    void SetPlugins(const std::vector<std::string> &plugins);
+
+    struct PluginInterface {
+        SharedLibrary lib;
+        mano::PluginDetails* info;
+        mano::IPlugin* plugin;
+    };
 
 private:
-    std::vector<SharedLibrary> mLibs;
+    std::map<std::string, std::shared_ptr<PluginInterface>> mLibs;
+    std::vector<std::string> mList;
+    void LoadOnePlugin(const std::string &name);
 };
 
 #endif // PLUGINCONTROLLER_H

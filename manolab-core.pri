@@ -13,7 +13,8 @@ HEADERS += QEngineModel.h
 # ------------------------------------------------------------------------------
 
 SOURCES += \
-    $$PWD/PluginController.cpp \
+    $$PWD/jsext/Environment.cpp \
+    PluginController.cpp \
     VoltcraftPPS.cpp \
     BK8500.cpp \
     DeviceBase.cpp \
@@ -33,13 +34,13 @@ SOURCES += \
     MiniCircuitsPwrSen.cpp \
     AcuDC.cpp \
     SoundPlayer.cpp \
-    ShowImage.cpp \
-    Zebra7500.cpp
+    ShowImage.cpp
 
 HEADERS += \
-    $$PWD/IPlugin.h \
-    $$PWD/Plugin.h \
-    $$PWD/PluginController.h \
+    $$PWD/jsext/Environment.h \
+    IPlugin.h \
+    Plugin.h \
+    PluginController.h \
     VoltcraftPPS.h \
     Registry.hpp \
     BK8500.h \
@@ -62,8 +63,7 @@ HEADERS += \
     InputText.h \
     IModbusMaster.h \
     SoundPlayer.h \
-    ShowImage.h \
-    Zebra7500.h
+    ShowImage.h
 
 VPATH += $$MANOLAB_ROOT_DIR/devices
 VPATH += $$MANOLAB_ROOT_DIR/jsext
@@ -100,18 +100,6 @@ HEADERS += hidapi.h
 VPATH += $$MANOLAB_ROOT_DIR/lib/libhid
 INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/libhid
 
-
-# ------------------------------------------------------------------------------
-# Zebra7500 library
-# ------------------------------------------------------------------------------
-QMAKE_LIBDIR += $$MANOLAB_ROOT_DIR/lib/libzebrarfid
-LIBS += -lrfidapi32 -lutils -lltk -lxml2
-INCLUDEPATH += $$MANOLAB_ROOT_DIR/lib/libzebrarfid
-VPATH += $$MANOLAB_ROOT_DIR/lib/libzebrarfid
-
-DEFINES += UNICODE linux
-SOURCES += Zebra7500Util.cpp
-HEADERS += rfidapi.h Zebra7500Util.h
 
 # ------------------------------------------------------------------------------
 # USB library

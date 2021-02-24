@@ -30,8 +30,8 @@
 #include "InputText.h"
 #include "ShowImage.h"
 #include "MiniCircuitsPwrSen.h"
-#include "Zebra7500.h"
 #include "PluginController.h"
+#include "Environment.h"
 
 #ifdef USE_WINDOWS_OS
 #include "CanDevice.h"
@@ -79,9 +79,8 @@ struct Device
 };
 
 
-class ProcessEngine : public Observer<Log::Infos>, public IScriptEngine::IPrinter, public IProcessEngine, public IScriptEngine::IFunction
+class ProcessEngine : public Observer<Log::Infos>, public IScriptEngine::IPrinter, public IProcessEngine
 {
-
 public:
     static const int cTestSkipped = 0;
     static const int cTestStarted = 1;
@@ -109,9 +108,6 @@ public:
     // From IScriptEngine::IPrinter
     virtual void Print(const std::string &msg);
 
-    // From IScriptEngine::IFunction
-    bool Execute(const std::vector<Value> &args, Value &ret);
-
     void Initialize();
     bool IsRunning();
     bool IsAdmin() const;
@@ -133,7 +129,8 @@ public:
     void AcceptInputText(const std::string &text, bool accepted);
     std::string GetLabelImage();
     void SetWorkspace(const std::string &path);
-    std::string GetWorkspace() const;
+
+    void SetPlugins(const std::vector<std::string> &plugins);
 
     IModbusMaster *GetModbusChannel(const std::string &id);
 
@@ -148,7 +145,6 @@ private:
     std::vector<Device> mDevices;
     std::vector<std::string> mConnList;
 
-    std::string mWorkspacePath;
     std::string mDescription;
     std::string mAdminPass;
     std::string mProduct;
@@ -174,7 +170,6 @@ private:
     SerialDevice mSerial;    
     ManoLabServer mManoLabServer;
     MiniCircuitsPwrSen mMiniCircuitsPwrSen;
-    Zebra7500 mZebra7500;
 
     // Interne
     std::shared_ptr<ShowImage> mShowImage;
@@ -184,6 +179,7 @@ private:
     std::shared_ptr<InputText> mInputText;
     std::shared_ptr<PrintReport> mPrintReport;
     std::shared_ptr<ExecuteCommand> mExecCommand;
+    std::shared_ptr<Environment> mEnvironment;
 
     std::vector<std::shared_ptr<DeviceBase>> mDeviceList;
     std::string mBufferedLabelImage;

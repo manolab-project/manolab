@@ -9,6 +9,14 @@
 #include "SerialPort.h"
 #include "SoundPlayer.h"
 
+
+#ifndef EXE_NAME
+    #define EXE_NAME "manolab"
+#else
+    #error "Please spcecify an executable name with define EXE_NAME"
+#endif
+
+
 static const std::uint32_t gEventNone       = 0U;
 static const std::uint32_t gEventStart      = 1U;
 static const std::uint32_t gEventPause      = 2U;
@@ -40,21 +48,19 @@ ProcessEngine::ProcessEngine()
     mDeviceList.push_back(std::make_shared<LonganCanModule>());
     mDeviceList.push_back(std::make_shared<ManoLabServer>());
     mDeviceList.push_back(std::make_shared<MiniCircuitsPwrSen>());
-    mDeviceList.push_back(std::make_shared<Zebra7500>());
 
     // Création des dev internes
 
     mDelays1s = std::make_shared<Delay1s>();
-  /*  mShowImage = std::make_shared<ShowImage()>;
-    std::shared_ptr<SoundPlayer> mSoundPlayer;
-    std::shared_ptr<PrintLog> mPrintLog;
-    std::shared_ptr<Delay1s> mDelays1s;
-    std::shared_ptr<InputText> mInputText;
-    std::shared_ptr<PrintReport> mPrintReport;
-    std::shared_ptr<ExecuteCommand> mExecCommand;
-*/
+    mShowImage = std::make_shared<ShowImage>();
+    mSoundPlayer = std::make_shared<SoundPlayer>();
+    mPrintLog = std::make_shared<PrintLog>();
+    mInputText = std::make_shared<InputText>();
+    mPrintReport = std::make_shared<PrintReport>();
+    mExecCommand = std::make_shared<ExecuteCommand>();
 
-    mPlugins.Load("zebrafx7500", "libzebrafx7500");
+    //Création des plugins
+    mPlugins.Load("libzebrafx7500");
 
     for (auto & dev : mDeviceList)
     {
@@ -96,10 +102,10 @@ void ProcessEngine::Initialize()
 
     // C++ signals
     mDelays1s->callback = std::bind( &ProcessEngine::Delay1sCallback, this, std::placeholders::_1 );
-  /*  mInputText->callback = std::bind( &ProcessEngine::InputTextCallback, this, std::placeholders::_1, std::placeholders::_2 );
-    mLabelPrinter->callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
+    mInputText->callback = std::bind( &ProcessEngine::InputTextCallback, this, std::placeholders::_1, std::placeholders::_2 );
+    mLabelPrinter.callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
     mShowImage->callback = std::bind( &ProcessEngine::LabelImage, this, std::placeholders::_1, std::placeholders::_2 );
-    */
+
 }
 /*****************************************************************************/
 void ProcessEngine::CloseScriptContext()
@@ -147,20 +153,17 @@ bool ProcessEngine::InitializeScriptContext()
     mJsEngine.Close();
     mJsEngine.Initialize();
     mJsEngine.RegisterPrinter(this);
-    mJsEngine.SetModuleSearchPath(mWorkspacePath + "/modules");
+    mJsEngine.SetModuleSearchPath(mEnvironment->GetWorkspace() + "/modules");
 
     mJsEngine.RegisterFunction("delay1s", mDelays1s);
-/*
- * // FIXME NEW ARCH
-    mJsEngine.RegisterFunction("inputText", &mInputText);
+    mJsEngine.RegisterFunction("inputText", mInputText);
+    mJsEngine.RegisterFunction("printLog", mPrintLog);
+    mJsEngine.RegisterFunction("printReport", mPrintReport);
+    mJsEngine.RegisterFunction("executeCommand", mExecCommand);
+    mJsEngine.RegisterFunction("playSound", mSoundPlayer);
+    mJsEngine.RegisterFunction("showImage", mShowImage);
+    mJsEngine.RegisterFunction(EXE_NAME, mEnvironment);
 
-    mJsEngine.RegisterFunction("printLog", &mPrintLog);
-    mJsEngine.RegisterFunction("printReport", &mPrintReport);
-    mJsEngine.RegisterFunction("executeCommand", &mExecCommand);
-    mJsEngine.RegisterFunction("playSound", &mSoundPlayer);
-    mJsEngine.RegisterFunction("showImage", &mShowImage);
-    mJsEngine.RegisterFunction("novprod", this);
-*/
     // Reload and reset all devices
     for (auto & dev : mDeviceList)
     {
@@ -238,8 +241,7 @@ void ProcessEngine::SelectOneTest(unsigned int index, bool enable)
 /*****************************************************************************/
 void ProcessEngine::AcceptInputText(const std::string &text, bool accepted)
 {
-    // FIXME NEW ARCH
-   // mInputText.SetText(text, accepted);
+   mInputText->SetText(text, accepted);
 }
 /*****************************************************************************/
 std::string ProcessEngine::GetLabelImage()
@@ -249,7 +251,7 @@ std::string ProcessEngine::GetLabelImage()
 /*****************************************************************************/
 void ProcessEngine::SetWorkspace(const std::string &path)
 {
-    mWorkspacePath = path;
+    mEnvironment->SetWorkspace(path);
 
     SoundPlayer::mWorkspacePath = path;
     ShowImage::mWorkspacePath = path;
@@ -257,9 +259,9 @@ void ProcessEngine::SetWorkspace(const std::string &path)
     Log::SetLogPath(path + Util::DIR_SEPARATOR + "logs");
 }
 /*****************************************************************************/
-std::string ProcessEngine::GetWorkspace() const
+void ProcessEngine::SetPlugins(const std::vector<std::string> &plugins)
 {
-    return mWorkspacePath;
+    mPlugins.SetPlugins(plugins);
 }
 /*****************************************************************************/
 IModbusMaster *ProcessEngine::GetModbusChannel(const std::string &id)
@@ -357,26 +359,6 @@ void ProcessEngine::Delay1sCallback(int value)
 void ProcessEngine::Print(const std::string &msg)
 {
     std::cout << "From JS: " << msg << std::endl;
-}
-/*****************************************************************************/
-bool ProcessEngine::Execute(const std::vector<Value> &args, Value &ret)
-{
-    bool success = false;
-
-    if (args.size() >= 1)
-    {
-        // First argument is the command
-        if ((args[0].GetType() == Value::STRING))
-        {
-            if (args[0].GetString() == "GetWorkspace")
-            {
-                ret = Value(mWorkspacePath);
-                success = true;
-            }
-        }
-    }
-
-    return success;
 }
 /*****************************************************************************/
 void ProcessEngine::CreateDevice(Device &device)
@@ -568,7 +550,7 @@ bool ProcessEngine::ParseTests()
                 value = json.FindValue("config");
                 if (value.IsString())
                 {
-                    mCurrentConfig = mWorkspacePath + Util::DIR_SEPARATOR + "config" + Util::DIR_SEPARATOR + value.GetString();
+                    mCurrentConfig = mEnvironment->GetWorkspace() + Util::DIR_SEPARATOR + "config" + Util::DIR_SEPARATOR + value.GetString();
                 }
                 else
                 {
