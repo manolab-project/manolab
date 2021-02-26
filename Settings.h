@@ -9,8 +9,9 @@ public:
 
     void ReadSettings(IProcessEngine &engine);
     void WriteSettings(const IProcessEngine &engine);
-private:
 
+private:
+    std::vector<std::string> mPlugins;
 };
 
 #endif // SETTINGS_H

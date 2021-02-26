@@ -1,21 +1,98 @@
 #include "PluginController.h"
 #include <iostream>
 #include "Util.h"
+#include "Log.h"
+#include "JsonValue.h"
+#include "JsonReader.h"
 
 PluginController::PluginController()
 {
 
 }
-
+/*****************************************************************************/
 void PluginController::Load()
 {
+    mLibs.clear();
+    for (const auto &p : mList)
+    {
+        TLogInfo("Loading plugin: " + p);
+        LoadOnePlugin(p);
+    }
 }
-
+/*****************************************************************************/
 void PluginController::SetPlugins(const std::vector<std::string> &plugins)
 {
     mList = plugins;
 }
+/*****************************************************************************/
+bool PluginController::LinkDevice(Device &device, IProcessEngine &engine)
+{
+    for (auto & dev : mLibs)
+    {
+        if ((dev.second->info->className == device.type))
+        {
+            device.Reset();
+            engine.RegisterJsFunction(device.name, dev.second);
 
+            JsonReader reader;
+            JsonValue json;
+
+            // device.json contains the parameters for this plug-in
+            if (reader.ParseString(json, device.json))
+            {
+                JsonObject data = json.GetObj();
+                PluginController::PluginInterface::SendRequestToDevice("SetParameters", data, dev.second);
+
+                // FIXME : add register listener
+
+                if (!dev.second->success)
+                {
+                    device.error = dev.second->message; // copy error related to that device for user information
+                    TLogError(device.error);
+                }
+                else
+                {
+                    TLogInfo("Device initialization success: " + device.name);
+                    device.connected = true;
+                }
+            }
+
+            break;
+        }
+    }
+
+    return device.connected;
+}
+/*****************************************************************************/
+std::string PluginController::Callback(const char *req)
+{
+    TLogInfo(req);
+    return "";
+}
+/*****************************************************************************/
+void PluginController::PluginInterface::SendRequestToDevice(const std::string &cmd, const JsonObject &data, std::shared_ptr<PluginInterface> p)
+{
+    p->success = false;
+    JsonObject req;
+    req.AddValue("cmd", cmd);
+    req.AddValue("data", data);
+
+    std::string res = p->plugin->Request(req.ToString());
+
+    JsonReader reader;
+    JsonValue json;
+
+    if (reader.ParseString(json, res))
+    {
+        if (json.FindValue("cmd").GetString() == ("Reply" + cmd))
+        {
+            p->success = json.FindValue("success").GetBool();
+            p->reply_data = json.FindValue("data").GetObj();
+            p->message = json.FindValue("message").GetString();
+        }
+    }
+}
+/*****************************************************************************/
 void PluginController::LoadOnePlugin(const std::string &name)
 {
     // Set the plugin shared library location
@@ -58,6 +135,10 @@ void PluginController::LoadOnePlugin(const std::string &name)
         {
             // Instantiate the plugin
             iface->plugin = reinterpret_cast<mano::IPlugin*>(iface->info->GetInterface());
+
+            // Register callback to here
+            // ==> allow communication from the plugin to manolab
+            iface->plugin->Register(this);
 
             mLibs[iface->info->pluginName] = iface;
 

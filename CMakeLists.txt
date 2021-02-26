@@ -24,9 +24,14 @@ add_library(
     STATIC
     ProcessEngine.cpp
     ProcessEngine.h
+
     IProcessEngine.h
+    IPlugin.h
+
     PluginController.cpp
     PluginController.h
+    Plugin.h
+
     Settings.cpp
     Settings.h
 

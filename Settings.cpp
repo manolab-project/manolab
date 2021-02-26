@@ -16,13 +16,13 @@ void Settings::ReadSettings(IProcessEngine &engine)
 
         JsonArray plugins = json.FindValue("plugins").GetArray();
 
-        std::vector<std::string> pList;
+
         for (const auto & p : plugins)
         {
-            pList.push_back(p.GetString());
+            mPlugins.push_back(p.GetString());
         }
 
-        engine.SetPlugins(pList);
+        engine.SetPlugins(mPlugins);
     }
 
     if (!Util::FolderExists(workspace))
@@ -31,7 +31,7 @@ void Settings::ReadSettings(IProcessEngine &engine)
         Util::Mkdir(workspace);
     }
 
-    std::cout << "Current workspace is: " << workspace << std::endl;
+//    std::cout << "Current workspace is: " << workspace << std::endl;
 
     engine.SetWorkspace(workspace);
     WriteSettings(engine);
@@ -41,6 +41,16 @@ void Settings::WriteSettings(const IProcessEngine &engine)
 {
     JsonObject json;
     json.AddValue("workspace", engine.GetWorkspace());
+
+    JsonArray plugins;
+
+    for (const auto &p : mPlugins)
+    {
+        plugins.AddValue(p);
+    }
+
+    json.AddValue("plugins", plugins);
+
     JsonWriter::SaveToFile(json, "manolab.json");
 }
 

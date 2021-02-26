@@ -2,10 +2,11 @@
 #include "Zebra7500Util.h"
 #include <iostream>
 #include "Plugin.h"
-
+#include "JsonReader.h"
 #include "Util.h"
 #include "Log.h"
 #include "ThreadQueue.h"
+#include "IProcessEngine.h"
 
 MANOLAB_PLUGIN(Zebra7500, "ZebraFX7500 RFID UHF Reader", "0.1.1")
 
@@ -20,7 +21,81 @@ Zebra7500::Zebra7500()
 
 Zebra7500::~Zebra7500()
 {
+    Stop();
+}
 
+std::string Zebra7500::Request(const std::string &req)
+{
+    JsonReader reader;
+    JsonValue json;
+    bool success = false;
+    std::string cmd;
+    std::string returnValue;
+    std::string message;
+
+    if (reader.ParseString(json, req))
+    {
+        cmd = json.FindValue("cmd").GetString();
+        JsonValue data = json.FindValue("data");
+
+        if (cmd == "SetParameters")
+        {
+            if (data.IsObject())
+            {
+                dev.name = data.FindValue("name").GetString();
+                dev.type = data.FindValue("type").GetString();
+                dev.conn_channel = data.FindValue("conn_channel").GetString();
+                dev.conn_settings = data.FindValue("conn_settings").GetString();
+                dev.id = data.FindValue("id").GetString();
+                dev.options = data.FindValue("options").GetString();
+                success = true;
+
+                success = Initialize();
+            }
+        }
+        else if (cmd == "Execute")
+        {
+            if (data.IsObject())
+            {
+                JsonArray array = data.FindValue("args").GetArray();
+                std::vector<Value> args;
+                for (const auto &a : array)
+                {
+                    args.push_back(PluginBase::JsonToValue(a));
+                }
+
+                Value ret;
+                success = Execute(args, ret);
+
+                if (success)
+                {
+                    JsonObject obj;
+                    obj.AddValue("cmd", "ReplyExecute");
+                    obj.AddValue("message", "");
+                    obj.AddValue("success", true);
+                    obj.AddValue("data", PluginBase::ValueToJson(ret));
+
+                    returnValue = obj.ToString();
+                }
+            }
+        }
+    }
+
+    if (!success)
+    {
+        returnValue = PluginBase::ErrorResponse(cmd, message);
+    }
+    else if (returnValue == "")
+    {
+        returnValue = PluginBase::GenericResponse(true, cmd);
+    }
+    return returnValue;
+}
+
+bool Zebra7500::Register(mano::IPlugin::ICallBack *cb)
+{
+    mCb = cb;
+    return true;
 }
 
 bool Zebra7500::Execute(const std::vector<Value> &args, Value &ret)
@@ -39,35 +114,18 @@ bool Zebra7500::Execute(const std::vector<Value> &args, Value &ret)
             }
             else if (cmd == std::string("TEST"))
             {
-                AutoTest();
+                // FIXME create auto test
             }
             else if (cmd == std::string("START"))
             {
                  mLoopQueue.Push(60);
             }
-            else if ((cmd == std::string("VOLT")) || cmd == std::string("SOVP"))
-            {
-
-            }
         }
     }
 
-    return !HasError();
+    return true;
 }
 
-void Zebra7500::AutoTest()
-{
-    std::string response;
-    //Request("GETS\r", response);
-}
-
-
-bool Zebra7500::Request(const std::string &request, std::string &response)
-{
-    bool success = false;
-
-    return success;
-}
 
 static wchar_t hostName[260];
 bool g_bUseWin32EventHandling = false; // in lunux, just the callback mechanism is supported.
@@ -84,6 +142,7 @@ static RFID_EVENT_TYPE gRfidEventTypes[MAX_EVENTS] =
 
 static void ZebraRfidEventCallback(RFID_HANDLE32 readerHandle, RFID_EVENT_TYPE eventType)
 {
+    (void) readerHandle;
     mLoopQueue.Push(eventType);
 }
 
@@ -92,7 +151,7 @@ bool Zebra7500::Initialize()
 {
     if (!mInitialized)
     {
-        std::string channel = GetConnectionChannel();
+        std::string channel = dev.conn_channel;
         wcscpy(hostName, Util::ToWString(channel).c_str());
 
         RFID_STATUS rfidStatus = ConnectReader(&readerHandle, hostName, 5084);
@@ -156,9 +215,42 @@ void Zebra7500::InventoryLoop()
                     wprintf(L"RFID_AllocateTag Failed.");
                     return;
                 }
+
                 while(RFID_API_SUCCESS == RFID_GetReadTag(readerHandle, pTagData))
                 {
-                    //printTagDataWithResults(pTagData);
+                    // On récupère le Tag id, il doit être de 12 octets
+                    UINT32 epcLength =  pTagData->tagIDLength;
+                    char tagidBuffer[12]; // en ascii
+                    uint64_t tid = 0;
+                    if (epcLength == 12)
+                    {
+                        for (uint32_t i = 0; i < epcLength; i++)
+                        {
+                            char b = pTagData->pTagID[i];
+                            if ((b < 0x30) || (b > 0x39))
+                            {
+                                b = 0x20;
+                            }
+
+                            tagidBuffer[i] = b;
+                        }
+                        std::istringstream iss(tagidBuffer);
+                        iss >> tid;
+                    }
+
+                    TagInfo t;
+                    t.first_seen = std::chrono::high_resolution_clock::now();
+
+                    if (mTags.count(tid) > 0)
+                    {
+                        mTags[tid].counter++;
+                    }
+                    else
+                    {
+                        mTags[tid] = t;
+                    }
+
+                    // printTagDataWithResults(pTagData);
                 }
 
                 if(pTagData)
@@ -166,6 +258,39 @@ void Zebra7500::InventoryLoop()
                     RFID_DeallocateTag(readerHandle, pTagData);
                 }
             }
+        }
+        std::vector<uint64_t> eraseList;
+        auto now = std::chrono::high_resolution_clock::now();
+        for (auto &t : mTags)
+        {
+            if ((t.second.counter > 0) && (t.second.prev != t.second.counter))
+            {
+                // still inventoring
+                t.second.prev = t.second.counter;
+
+                if (t.second.newTag)
+                {
+                    t.second.newTag = false;
+                    // new tag
+                    std::string req = "NEW TAG: " + std::to_string(t.first);
+                    mCb->Callback(req.c_str());
+                }
+            }
+            else
+            {
+                auto duration = std::chrono::duration_cast<std::chrono::seconds>( now - t.second.first_seen ).count();
+                if (duration > 5)
+                {
+                    eraseList.push_back(t.first);
+                    std::string req = "BYE TAG: " + std::to_string(t.first);
+                    mCb->Callback(req.c_str());
+                }
+            }
+        }
+
+        for (auto tid : eraseList)
+        {
+            mTags.erase(tid);
         }
 //        if (start)
 //        {

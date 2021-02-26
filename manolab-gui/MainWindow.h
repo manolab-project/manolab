@@ -28,9 +28,6 @@ private:
     Settings mSettings;
     ImGuiFileDialog fileDialog;
 
-    // Workspace stuff
-    std::vector<std::string> files;
-
     void SetupFileMenu();
     void SetupMainMenuBar();
     void EngineEvents(int signal, const std::vector<Value> &args);

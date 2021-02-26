@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(zebrafx7500 LANGUAGES CXX)
+project(zebrafx7500 LANGUAGES C CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -10,16 +10,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../lib/icl build_icl)
 
 add_library(zebrafx7500 SHARED
-  Zebra7500.cpp
-  Zebra7500Util.cpp
-  Zebra7500.h
-  Zebra7500Util.h
+    Zebra7500.cpp
+    Zebra7500Util.cpp
+    Zebra7500.h
+    Zebra7500Util.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Plugin.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../PluginBase.h
+
 )
 
 target_include_directories (
     zebrafx7500
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../devices
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../lib/modbuslib
 )
 #LIBS += -lrfidapi32 -lutils -lltk -lxml2
 

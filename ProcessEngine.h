@@ -39,46 +39,7 @@
 #include "CanDevice.h"
 #endif
 
-struct Test
-{
-    std::string title;
-    bool enable;
-    std::vector<std::string> steps;
-
-    Test()
-        : enable(true)
-    {
-
-    }
-};
-
-
 #define MAX_DEVICES 10
-
-struct Device
-{
-    std::string name;
-    std::string type;
-    std::string conn_channel;
-    std::string conn_settings;
-    std::string id;
-    std::string options;
-
-    bool connected; // Connected to a physical device
-    std::string error;
-
-    Device()
-        : connected(false)
-    {
-
-    }
-
-    void Reset()
-    {
-        connected = false;
-        error = "";
-    }
-};
 
 
 class ProcessEngine : public Observer<Log::Infos>, public IScriptEngine::IPrinter, public IProcessEngine
@@ -88,7 +49,6 @@ public:
     static const int cTestStarted = 1;
     static const int cTestFinished = 2;
     static const int cTestError = 3;
-
 
     enum Event {
         SIG_DELAY_1S,
@@ -110,6 +70,15 @@ public:
     // From IScriptEngine::IPrinter
     virtual void Print(const std::string &msg);
 
+    void Quit();
+    void AutoTest();
+    void RegisterEventEmitter(std::function<void (int, const std::vector<Value> &)> &func);
+    void SelectAllTests(bool enalble);
+    void SelectOneTest(unsigned int index, bool enable);
+    void AcceptInputText(const std::string &text, bool accepted);
+    std::string GetLabelImage();
+
+    // IProcessEngine
     void Initialize();
     bool IsRunning();
     bool IsAdmin() const;
@@ -123,19 +92,11 @@ public:
     void Start();
     void Pause();
     void Resume();
-    void Quit();
-    void AutoTest();
-    void RegisterEventEmitter(std::function<void (int, const std::vector<Value> &)> &func);
-    void SelectAllTests(bool enalble);
-    void SelectOneTest(unsigned int index, bool enable);
-    void AcceptInputText(const std::string &text, bool accepted);
-    std::string GetLabelImage();
-
-    // IProcessEngine
     void SetPlugins(const std::vector<std::string> &plugins);
     virtual std::string GetWorkspace() const;
     void SetWorkspace(const std::string &path);
     IModbusMaster *GetModbusChannel(const std::string &id);
+    void RegisterJsFunction(const std::string &name, std::shared_ptr<IScriptEngine::IFunction> function);
 
 private:
     JSEngine mJsEngine;
@@ -197,7 +158,7 @@ private:
     virtual void Update(const Log::Infos &info);
     void Delay1sCallback(int value);
     bool ParseConfig();
-    void CreateDevice(Device &device);
+    bool CreateDevice(Device &device);
     bool ParseTests();
     void SignalStep(const std::string &step_title, bool isStart);
     void SignalTest(int test, uint32_t step_size);

@@ -2,15 +2,17 @@
 #include <filesystem>
 #include <Util.h>
 #include "ImGuiFileDialog.h"
+#include "imgui_internal.h"
 
 MainWindow::MainWindow()
+    : taskList(engine)
 {
 
 }
 
 MainWindow::~MainWindow()
 {
-
+    engine.Quit();
 }
 
 void MainWindow::SetupFileMenu()
@@ -26,6 +28,7 @@ void MainWindow::SetupFileMenu()
 
 void MainWindow::SetupMainMenuBar()
 {
+    bool showAboutPopup = false;
     if (ImGui::BeginMainMenuBar())
     {
         if (ImGui::BeginMenu("File"))
@@ -33,20 +36,48 @@ void MainWindow::SetupMainMenuBar()
             SetupFileMenu();
             ImGui::EndMenu();
         }
-        /*
-        if (ImGui::BeginMenu("Edit"))
+
+        if (ImGui::BeginMenu("Help"))
         {
-            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-            ImGui::Separator();
-            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+            if (ImGui::MenuItem("About"))
+            {
+                showAboutPopup = true;
+            }
             ImGui::EndMenu();
         }
-        */
+
         ImGui::EndMainMenuBar();
     }
+
+    if (showAboutPopup)
+    {
+        ImGui::OpenPopup("AboutPopup");
+    }
+
+    // Always center this window when appearing
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    //ImVec2 parent_pos = ImGui::GetWindowPos();
+    //ImVec2 parent_size = ImGui::GetWindowSize();
+    //ImVec2 center(parent_pos.x + parent_size.x * 0.5f, parent_pos.y + parent_size.y * 0.5f);
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("AboutPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "Platform");
+        ImGui::Text("%s", SDL_GetPlatform());
+        ImGui::Text("CPU cores: %d", SDL_GetCPUCount());
+        ImGui::Text("RAM: %.2f GB", SDL_GetSystemRAM() / 1024.0f);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Separator();
+
+        ImGui::SameLine(300);
+        if (ImGui::Button("Close", ImVec2(120, 40)))
+        {
+           ImGui::CloseCurrentPopup();
+        }
+       ImGui::EndPopup();
+    }
+
 
     // display
     if (fileDialog.Display("ChooseDirDlgKey"))
@@ -62,7 +93,6 @@ void MainWindow::SetupMainMenuBar()
         // close
         fileDialog.Close();
     }
-
 }
 
 void MainWindow::Initialize()
@@ -78,18 +108,12 @@ void MainWindow::Initialize()
     mSettings.WriteSettings(engine);
 
 
-    std::string p = engine.GetWorkspace() + "/files";
-
-
-    files = Util::GetDirectoryFiles(p, "js");
+    taskList.ScanWorkspace();
 
     std::function< void(int, const std::vector<Value>&) > cb = std::bind( &MainWindow::EngineEvents, this, std::placeholders::_1 , std::placeholders::_2 );
     engine.RegisterEventEmitter(cb);
 
-    for (const auto & f : files)
-    {
-        std::cout << f << std::endl;
-    }
+
 }
 
 //engine.LoadScript(filePath.toStdString());
@@ -128,6 +152,7 @@ void MainWindow::EngineEvents(int signal, const std::vector<Value> &args)
     case ProcessEngine::SIG_DELAY_1S:
         if (args.size() > 0)
         {
+            console.AddMessage("[TEST] Delay: " + std::to_string(args[0].GetInteger()));
             //            QMetaObject::invokeMethod(this, "sigDelay", Qt::QueuedConnection,
             //                                      Q_ARG(int, args[0].GetInteger()));
 
@@ -136,6 +161,8 @@ void MainWindow::EngineEvents(int signal, const std::vector<Value> &args)
     case ProcessEngine::SIG_TEST_NUMBER:
         if (args.size() > 1)
         {
+            console.AddMessage("[TEST] Test number: " + std::to_string(args[0].GetInteger())
+                               + " / " + std::to_string(args[1].GetInteger()));
             //            QMetaObject::invokeMethod(this, "sigTest", Qt::QueuedConnection,
             //                                      Q_ARG(int, args[0].GetInteger()),
             //                                      Q_ARG(int, args[1].GetInteger())
@@ -145,12 +172,15 @@ void MainWindow::EngineEvents(int signal, const std::vector<Value> &args)
     case ProcessEngine::SIG_STEP_NUMBER:
         if (args.size() >= 2)
         {
+            std::string enabled = args[1].GetBool() ? "true" : "false";
+            console.AddMessage("[TEST] Test step: " + args[0].GetString() + " " + enabled);
             //            QMetaObject::invokeMethod(this, "sigStep", Qt::QueuedConnection,
-            //                                      Q_ARG(QString, args[0].GetString().c_str()),
+            //                                      Q_ARG(QString, .c_str()),
             //                                      Q_ARG(bool, args[1].GetBool()));
         }
         break;
     case ProcessEngine::SIG_TEST_FINISHED:
+        console.AddMessage("[TEST] Finished");
         //        QMetaObject::invokeMethod(this, "sigFinished", Qt::QueuedConnection);
 
         break;
@@ -158,7 +188,8 @@ void MainWindow::EngineEvents(int signal, const std::vector<Value> &args)
     case ProcessEngine::SIG_MESSAGE:
         if (args.size() > 0)
         {
-            std::cout << args[0].GetString() << std::endl;
+            console.AddMessage(args[0].GetString());
+//            std::cout << args[0].GetString() << std::endl;
             //            QMetaObject::invokeMethod(this, "sigMessage", Qt::QueuedConnection,
             //                                      Q_ARG(QString, args[0].GetString().c_str()));
         }
@@ -166,6 +197,8 @@ void MainWindow::EngineEvents(int signal, const std::vector<Value> &args)
 
     case ProcessEngine::SIG_LOADED:
         //        QMetaObject::invokeMethod(this, "sigScriptLoaded", Qt::QueuedConnection);
+        console.AddMessage("Script loaded");
+        taskList.RefreshList();
         break;
 
     case ProcessEngine::SIG_INPUT_TEXT:
@@ -178,6 +211,7 @@ void MainWindow::EngineEvents(int signal, const std::vector<Value> &args)
         break;
 
     case ProcessEngine::SIG_AUTO_TEST_FINISHED:
+        console.AddMessage("Script finished");
         //        BuildComChannelModel(); // refresh model
         //        // THEN, update UI
         //        QMetaObject::invokeMethod(this, "sigAutoTestFinished", Qt::QueuedConnection);
@@ -193,10 +227,12 @@ void MainWindow::EngineEvents(int signal, const std::vector<Value> &args)
         break;
 
     case ProcessEngine::SIG_TEST_ENDED:
+        console.AddMessage("Test ended");
         //        QMetaObject::invokeMethod(this, "sigTestEnded", Qt::QueuedConnection);
         break;
 
     case ProcessEngine::SIG_TEST_ERROR:
+        console.AddMessage("[TEST] Error");
         //        QMetaObject::invokeMethod(this, "sigTestError", Qt::QueuedConnection);
         break;
 

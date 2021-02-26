@@ -17,7 +17,6 @@ ConsoleWindow::ConsoleWindow()
     Commands.push_back("CLASSIFY");
     AutoScroll = true;
     ScrollToBottom = false;
-    AddLog("Welcome to Dear ImGui!");
 }
 
 ConsoleWindow::~ConsoleWindow()

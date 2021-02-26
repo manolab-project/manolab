@@ -81,7 +81,7 @@ bool Gui::Initialize()
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-    io.Fonts->AddFontFromFileTTF("fonts/DroidSans.ttf", 16.0f);
+    io.Fonts->AddFontFromFileTTF("fonts/DroidSans.ttf", 20.0f);
 
     // merge in icons from Font Awesome
     static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 }; // keep static

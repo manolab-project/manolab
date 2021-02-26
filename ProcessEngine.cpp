@@ -59,9 +59,6 @@ ProcessEngine::ProcessEngine()
 //    mShowImage = std::make_shared<ShowImage>();
 //    mSoundPlayer = std::make_shared<SoundPlayer>();
 
-    //Création des plugins
-//    mPlugins.Load("libzebrafx7500");
-
     for (auto & dev : mDeviceList)
     {
         dev->SetProcessEngine(this);
@@ -176,16 +173,25 @@ bool ProcessEngine::InitializeScriptContext()
         dev->ClearError();
     }
 
+    // Chargement des plugins
+    mPlugins.Load();
+
     ScanAvailableConnections();
 
     // Assign all javascript devices to physical peripherals
     for (auto &dev : mDevices)
     {
+        dev.Reset();
         CreateDevice(dev);
 
         if (!dev.connected)
         {
-            ret = false;
+            // On tente les plug-ins
+            if (!mPlugins.LinkDevice(dev, *this))
+            {
+                TLogError("Cannot create unkown device: " + dev.type + " or too much devices created.");
+                ret = false;
+            }
             break;
         }
     }
@@ -283,6 +289,11 @@ IModbusMaster *ProcessEngine::GetModbusChannel(const std::string &id)
     return ptr;
 }
 /*****************************************************************************/
+void ProcessEngine::RegisterJsFunction(const std::string &name, std::shared_ptr<IScriptEngine::IFunction> function)
+{
+    mJsEngine.RegisterFunction(name, function);
+}
+/*****************************************************************************/
 void ProcessEngine::CreateNewLogFiles()
 {
     std::string logFileName = Util::GetFileName(mCurrentScript) + "_" + Util::CurrentDateTime("%Y%m%d_%H%M%S");
@@ -367,7 +378,7 @@ void ProcessEngine::Print(const std::string &msg)
     std::cout << "From JS: " << msg << std::endl;
 }
 /*****************************************************************************/
-void ProcessEngine::CreateDevice(Device &device)
+bool ProcessEngine::CreateDevice(Device &device)
 {
     bool found = false;
     for (auto & dev : mDeviceList)
@@ -375,8 +386,6 @@ void ProcessEngine::CreateDevice(Device &device)
         if ((dev->GetType() == device.type) && !dev->IsUsed())
         {
             found = true;
-
-            device.Reset();
 
             dev->Take();
             dev->SetConnectionChannel(device.conn_channel);
@@ -411,10 +420,7 @@ void ProcessEngine::CreateDevice(Device &device)
         }
     }
 
-    if (!found)
-    {
-        TLogError("Cannot create unkown device: " + device.type + " or too much devices created.");
-    }
+    return found;
 }
 /*****************************************************************************/
 bool ProcessEngine::ParseConfig()
@@ -453,6 +459,7 @@ bool ProcessEngine::ParseConfig()
                         if (entry.IsObject())
                         {
                             Device dev;
+                            dev.json = entry.GetObj().ToString();
                             dev.name = entry.FindValue("name").GetString();
                             dev.type = entry.FindValue("type").GetString();
                             dev.conn_channel = entry.FindValue("conn_channel").GetString();

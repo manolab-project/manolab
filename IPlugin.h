@@ -3,43 +3,96 @@
 
 #include "IScriptEngine.h"
 
+
 namespace mano {
 
-class IPlugin : public IScriptEngine::IFunction
+class IPlugin
 {
 public:
     IPlugin() {};
     virtual ~IPlugin() {};
 
-    virtual bool Initialize() = 0;
-    virtual void Stop() = 0;
-    virtual void AutoTest() = 0;
+    class ICallBack
+    {
+    public:
+//        virtual std::string Callback(const std::string &req) = 0;
+        virtual std::string Callback(const char *) = 0;
+    };
 
-    // Identification
-    virtual std::string GetName() = 0;
-    virtual void SetDeviceId(const std::string &id) = 0;
-    virtual std::string GetDeviceId() = 0;
+    /**
+     * Commande transférée au plugin
+     *   {
+     *      "cmd": "SetParameters",
+     *      "data":  {
+     *      }
+     *   }
+     *
+     *
+     * Retourne un JSON qui aura toujours la forme suivante :
+     *   {
+     *      "cmd": "ReplyTruc",
+     *      "success": true | false,
+     *      "message": "message d'erreur ou debug",
+     *      "data": {
+     *          ...
+     *      }
+     *   }
+     */
+    virtual std::string Request(const std::string &req) = 0;
 
-    // Connection parameters
-    virtual void SetConnectionChannel(const std::string &conn) = 0;
-    virtual std::string GetConnectionChannel() = 0;
-    virtual void SetConnectionSettings(const std::string &params) = 0;
-    virtual std::string GetConnectionSettings() = 0;
-
-    // Device specific parameters
-    virtual void SetDeviceOptions(const std::string &options) = 0;
-    virtual std::string GetDeviceOptions() = 0;
-
-    // Error management
-    virtual void SetError(const std::string &err) = 0;
-    virtual std::string GetError() const  = 0;
-    virtual void ClearError() = 0;
-    virtual bool HasError() const = 0;
-
+    virtual bool Register(ICallBack *cb) = 0;
 };
 
 
 }  // namespace mano
+
+/*
+Supported commands:
+
+// Commande d'initialisation du plug-in
+// à réception, il est attendu que le plug-in :
+//  - s'initialise
+//  - S'auto-test
+//  - retourner un message d'erreur en cas de problème
+
+// réponse: cmd = "ReplyParameters"
+ {
+    "cmd": "SetParameters",
+    "data": {
+        "conn_channel": "10.0.0.14",
+        "conn_settings": "",
+        "id": "",
+        "options": ""
+    }
+ }
+
+
+ // Commande en provenance du script
+ {
+    "cmd": "Execute",
+    "data": {
+        "args": [ "toto", "tata" ]
+
+    }
+ }
+
+ // Réponse :
+
+ {
+    "cmd": "ReplyExecute",
+    "success": true,
+    "message": "",
+    "data": {
+        "args": [ "toto", "tata" ]
+
+    }
+ }
+
+
+
+
+*/
+
 
 
 #endif // IPLUGIN_H

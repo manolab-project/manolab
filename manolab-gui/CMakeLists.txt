@@ -45,6 +45,9 @@ add_executable(manolab-gui
     MainWindow.cpp
     MainWindow.h
 
+    TableWindow.cpp
+    TableWindow.h
+
     Gui.h
     Gui.cpp
 

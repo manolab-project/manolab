@@ -3,7 +3,50 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "IModbusMaster.h"
+#include "IScriptEngine.h"
+
+struct Test
+{
+    std::string title;
+    bool enable;
+    std::vector<std::string> steps;
+
+    Test()
+        : enable(true)
+    {
+
+    }
+};
+
+struct Device
+{
+    std::string name;
+    std::string type;
+    std::string conn_channel;
+    std::string conn_settings;
+    std::string id;
+    std::string options;
+
+    bool connected; // Connected to a physical device
+    std::string error;
+
+    std::string json;
+
+    Device()
+        : connected(false)
+    {
+
+    }
+
+    void Reset()
+    {
+        connected = false;
+        error = "";
+    }
+};
+
 
 class IProcessEngine
 {
@@ -11,10 +54,24 @@ public:
 
     virtual ~IProcessEngine() {}
 
+    virtual void Initialize() = 0;
+    virtual bool IsRunning() = 0;
+    virtual bool IsAdmin() const = 0;
+    virtual bool IsLoaded() const = 0;
+    virtual std::string GetDescription() const = 0;
+    virtual std::string GetTestTitle(unsigned int index) const = 0;
+    virtual void LoadScript(const std::string &scriptFullPath) = 0;
+    virtual std::vector<Test> GetTests() = 0;
+    virtual std::vector<std::string>  GetConnList() = 0;
+    virtual void Stop() = 0;
+    virtual void Start() = 0;
+    virtual void Pause() = 0;
+    virtual void Resume() = 0;
     virtual void SetPlugins(const std::vector<std::string> &plugins) = 0;
     virtual std::string GetWorkspace() const = 0;
     virtual void SetWorkspace(const std::string &path) = 0;
     virtual IModbusMaster *GetModbusChannel(const std::string &id) = 0;
+    virtual void RegisterJsFunction(const std::string &name, std::shared_ptr<IScriptEngine::IFunction> function) = 0;
 };
 
 #endif // I_PROCESS_ENGINE_H

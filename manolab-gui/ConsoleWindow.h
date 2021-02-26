@@ -20,17 +20,7 @@ public:
 
     void    ClearLog();
 
-    void    AddLog(const char* fmt, ...) IM_FMTARGS(2)
-    {
-        // FIXME-OPT
-        char buf[1024];
-        va_list args;
-        va_start(args, fmt);
-        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
-        buf[IM_ARRAYSIZE(buf)-1] = 0;
-        va_end(args);
-        Items.push_back(Strdup(buf));
-    }
+    void AddMessage(const std::string &message) { AddLog("%s", message.c_str()); }
 
     void Draw(const char* title, bool* p_open);
 
@@ -42,6 +32,18 @@ public:
     int     TextEditCallback(ImGuiInputTextCallbackData* data);
 
 private:
+
+    void    AddLog(const char* fmt, ...) IM_FMTARGS(2)
+    {
+        // FIXME-OPT
+        char buf[1024];
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
+        buf[IM_ARRAYSIZE(buf)-1] = 0;
+        va_end(args);
+        Items.push_back(Strdup(buf));
+    }
 
     char                  InputBuf[256];
     ImVector<char*>       Items;
