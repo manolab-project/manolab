@@ -35,6 +35,9 @@ add_library(
     Settings.cpp
     Settings.h
 
+    Node.cpp
+    Node.h
+
     # Extensions
     jsext/Environment.cpp
     jsext/Environment.h

@@ -1,9 +1,10 @@
-#ifndef CODEEDITOR_H
-#define CODEEDITOR_H
+#ifndef CODE_EDITOR_H
+#define CODE_EDITOR_H
 
 #include "TextEditor.h"
+#include "WindowBase.h"
 
-class CodeEditor
+class CodeEditor : public WindowBase
 {
 public:
     CodeEditor();
@@ -16,4 +17,4 @@ private:
     std::string mFileToEdit;
 };
 
-#endif // CODEEDITOR_H
+#endif // CODE_EDITOR_H

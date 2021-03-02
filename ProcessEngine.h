@@ -50,20 +50,7 @@ public:
     static const int cTestFinished = 2;
     static const int cTestError = 3;
 
-    enum Event {
-        SIG_DELAY_1S,
-        SIG_TEST_NUMBER,
-        SIG_STEP_NUMBER,
-        SIG_TEST_SKIPPED,
-        SIG_TEST_ENDED,
-        SIG_TEST_ERROR,
-        SIG_TEST_FINISHED,
-        SIG_LOADED,
-        SIG_MESSAGE,
-        SIG_INPUT_TEXT,
-        SIG_AUTO_TEST_FINISHED,
-        SIG_SHOW_IMAGE
-    };
+
     explicit ProcessEngine();
     ~ProcessEngine();
 
@@ -83,10 +70,11 @@ public:
     bool IsRunning();
     bool IsAdmin() const;
     bool IsLoaded() const;
+    void SendEvent(Event ev, const std::vector<Value> &args);
     std::string GetDescription() const;
     std::string GetTestTitle(unsigned int index) const;
     void LoadScript(const std::string &scriptFullPath);
-    std::vector<Test> GetTests();
+    std::vector<Node> GetTests();
     std::vector<std::string>  GetConnList();
     void Stop();
     void Start();
@@ -99,13 +87,14 @@ public:
     void RegisterJsFunction(const std::string &name, std::shared_ptr<IScriptEngine::IFunction> function);
 
 private:
+    PluginController mPlugins;
     JSEngine mJsEngine;
 
     std::thread mThread;
     std::mutex mMutex;
     ThreadQueue<std::uint32_t> mQueue;
 
-    std::vector<Test> mTests;
+    std::vector<Node> mTests;
     std::vector<Device> mDevices;
     std::vector<std::string> mConnList;
 
@@ -150,7 +139,6 @@ private:
     std::vector<std::shared_ptr<DeviceBase>> mDeviceList;
     std::string mBufferedLabelImage;
 
-    PluginController mPlugins;
 
     void Run();
     void Join();

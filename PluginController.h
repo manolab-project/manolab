@@ -10,12 +10,13 @@
 #include "IProcessEngine.h"
 #include "JsonValue.h"
 #include "PluginBase.h"
+#include "Pool.h"
 
 
 class PluginController : public mano::IPlugin::ICallBack
 {
 public:
-    PluginController();
+    PluginController(IProcessEngine &engine);
     void Load();
 
     void SetPlugins(const std::vector<std::string> &plugins);
@@ -55,13 +56,18 @@ public:
         static void SendRequestToDevice(const std::string &cmd, const JsonObject &data, std::shared_ptr<PluginInterface> plugin);
     };
 
-    bool LinkDevice(Device &device, IProcessEngine &engine);
+    bool LinkDevice(Device &device);
 
     virtual std::string Callback(const char *req);
 
 private:
+    IProcessEngine &mEngine;
+
     std::map<std::string, std::shared_ptr<PluginInterface>> mLibs;
     std::vector<std::string> mList;
+
+    thread_pool mPool; // pool de thread pour amortir les actions des plugins
+
     void LoadOnePlugin(const std::string &name);
 };
 

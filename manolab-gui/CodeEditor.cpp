@@ -35,6 +35,11 @@ void CodeEditor::Initialize()
 
 void CodeEditor::Draw(const char* title, bool* p_open)
 {
+    if (!IsVisible())
+    {
+        return;
+    }
+
     auto cpos = mEditor.GetCursorPosition();
     ImGui::Begin(title, p_open, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
     ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);

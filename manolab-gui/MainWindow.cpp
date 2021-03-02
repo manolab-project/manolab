@@ -78,7 +78,6 @@ void MainWindow::SetupMainMenuBar()
        ImGui::EndPopup();
     }
 
-
     // display
     if (fileDialog.Display("ChooseDirDlgKey"))
     {
@@ -136,6 +135,7 @@ void MainWindow::Loop()
         imgWindow.Draw("ImageWindow", nullptr);
         editor.Draw("Code Editor", nullptr);
         taskList.Draw("Test list", nullptr);
+        tableWindow.Draw("Table View", nullptr);
 
         gui.EndFrame();
     }
@@ -143,7 +143,14 @@ void MainWindow::Loop()
     gui.Destroy();
 }
 
-
+/**
+ * @brief MainWindow::EngineEvents
+ *
+ *  ATTENTION, POTENTIELLEMENT MULTI THREADÉ | PRÉVOIR DES MUTEX
+ *
+ * @param signal
+ * @param args
+ */
 void MainWindow::EngineEvents(int signal, const std::vector<Value> &args)
 {
     switch (signal)
@@ -235,7 +242,9 @@ void MainWindow::EngineEvents(int signal, const std::vector<Value> &args)
         console.AddMessage("[TEST] Error");
         //        QMetaObject::invokeMethod(this, "sigTestError", Qt::QueuedConnection);
         break;
-
+    case ProcessEngine::SIG_TABLE_ACTION:
+        tableWindow.ParseAction(args);
+        break;
     default:
         TLogWarning("Un-managed signal: " + std::to_string(signal));
         break;

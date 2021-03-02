@@ -2,8 +2,9 @@
 #define IMAGEWINDOW_H
 
 #include "Gui.h"
+#include "WindowBase.h"
 
-class ImageWindow
+class ImageWindow : public WindowBase
 {
 public:
     ImageWindow();

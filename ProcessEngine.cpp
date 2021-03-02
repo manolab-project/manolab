@@ -24,7 +24,8 @@ static const std::uint32_t gEventAutoTest   = 5U;
 static const std::uint32_t gEventLoad       = 6U;
 
 ProcessEngine::ProcessEngine()
-    : mRunning(false)
+    : mPlugins(*this)
+    , mRunning(false)
     , mQuit(false)
     , mInitialized(false)
 {
@@ -187,7 +188,7 @@ bool ProcessEngine::InitializeScriptContext()
         if (!dev.connected)
         {
             // On tente les plug-ins
-            if (!mPlugins.LinkDevice(dev, *this))
+            if (!mPlugins.LinkDevice(dev))
             {
                 TLogError("Cannot create unkown device: " + dev.type + " or too much devices created.");
                 ret = false;
@@ -201,10 +202,9 @@ bool ProcessEngine::InitializeScriptContext()
 /*****************************************************************************/
 bool ProcessEngine::IsRunning()
 {
+    std::scoped_lock<std::mutex>  lock(mMutex);
     bool running;
-    mMutex.lock();
     running = mRunning;
-    mMutex.unlock();
     return running;
 }
 /*****************************************************************************/
@@ -216,6 +216,11 @@ bool ProcessEngine::IsAdmin() const
 bool ProcessEngine::IsLoaded() const
 {
     return mTests.size() > 0 ? true : false;
+}
+/*****************************************************************************/
+void ProcessEngine::SendEvent(IProcessEngine::Event ev, const std::vector<Value> &args)
+{
+    mEventCallback(ev, args);
 }
 /*****************************************************************************/
 std::string ProcessEngine::GetDescription() const
@@ -331,9 +336,11 @@ void ProcessEngine::DoLoadScript()
     }
 }
 /*****************************************************************************/
-std::vector<Test> ProcessEngine::GetTests()
+std::vector<Node> ProcessEngine::GetTests()
 {
-    return mTests;
+    std::scoped_lock<std::mutex>  lock(mMutex);
+    std::vector<Node> t = mTests;
+    return t;
 }
 /*****************************************************************************/
 std::vector<std::string> ProcessEngine::GetConnList()
@@ -580,57 +587,17 @@ bool ProcessEngine::ParseTests()
                     for (std::uint32_t i = 0; i < array.Size(); i++)
                     {
                         JsonValue entry = array.GetEntry(i);
-                        bool bad_entry = false;
-                        Test test;
-
-                        if (entry.IsObject())
+                        Node n;
+                        if (n.Parse(entry))
                         {
-                            JsonValue title = entry.FindValue("title");
-                            if (title.IsString())
-                            {
-                                test.title = title.GetString();
-                                JsonValue steps_value = entry.FindValue("steps");
-                                if (steps_value.IsArray())
-                                {
-                                    JsonArray &steps = steps_value.GetArray();
-                                    for (std::uint32_t j = 0; j < steps.Size(); j++)
-                                    {
-                                        JsonValue step = steps.GetEntry(j);
-                                        if (step.IsString())
-                                        {
-                                            test.steps.push_back(step.GetString());
-                                        }
-                                        else
-                                        {
-                                            bad_entry = true;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    bad_entry = true;
-                                }
-                            }
-                            else
-                            {
-                                bad_entry = true;
-                            }
+                            success = true;
+                            mTests.push_back(n);
                         }
                         else
-                        {
-                            bad_entry = true;
-                        }
-
-                        if (bad_entry)
                         {
                             success = false;
                             TLogError("malformed test entry at index " + std::to_string(i));
                             break;
-                        }
-                        else
-                        {
-                            success = true;
-                            mTests.push_back(test);
                         }
                     }
 
@@ -765,50 +732,67 @@ void ProcessEngine::TestLoop()
 
             for (const auto & step : test.steps)
             {
-                TLogInfo("    --> Running step: " + step);
-                SignalStep(step, true);
-                IScriptEngine::StringList args;
-
-                (void) mJsEngine.Call(step, args);
-
-                if (mJsEngine.HasError())
+                bool loopThisStep = false;
+                bool quitThisNode = false;
+                do
                 {
-                    stopOnError = true;
-                    mEventCallback(Event::SIG_TEST_ERROR, std::vector<Value>());
-                    // Throw JS error
-                    TLogError(mJsEngine.GetLastError());
-                    // Scan for device error
-                    for (const auto & dev : mDeviceList)
+                    if (step.mode == "loop")
                     {
-                        if (dev->HasError())
-                        {
-                            TLogError(dev->GetError());
-                            dev->ClearError();
-                        }
+                        loopThisStep = true;
                     }
-                    args.clear();
-                    (void) mJsEngine.Call("onError", args);
 
-                    // Patch: l'appel à cette fonction peut elle aussi générer une erreur !!
+                    TLogInfo("    --> Running step: " + step.name);
+                    SignalStep(step.name, true);
+                    IScriptEngine::StringList args;
+
+                    (void) mJsEngine.Call(step.name, args);
+
                     if (mJsEngine.HasError())
                     {
+                        stopOnError = true;
+                        mEventCallback(Event::SIG_TEST_ERROR, std::vector<Value>());
+                        // Throw JS error
                         TLogError(mJsEngine.GetLastError());
+                        // Scan for device error
+                        for (const auto & dev : mDeviceList)
+                        {
+                            if (dev->HasError())
+                            {
+                                TLogError(dev->GetError());
+                                dev->ClearError();
+                            }
+                        }
+                        args.clear();
+                        (void) mJsEngine.Call("onError", args);
+
+                        // Patch: l'appel à cette fonction peut elle aussi générer une erreur !!
+                        if (mJsEngine.HasError())
+                        {
+                            TLogError(mJsEngine.GetLastError());
+                        }
                     }
-                }
 
-                mQueue.TryPop(ev);
+                    mQueue.TryPop(ev);
 
-                if (ev == gEventPause)
-                {
-                    mQueue.WaitAndPop(ev);
+                    if (ev == gEventPause)
+                    {
+                        mQueue.WaitAndPop(ev);
+                    }
+                    else if ((ev == gEventStop) || (stopOnError))
+                    {
+                        loopThisStep = false;
+                        quitThisNode = true;
+                    }
+
+                    // Step ok
+                    SignalStep(step.name, false);
                 }
-                else if ((ev == gEventStop) || (stopOnError))
+                while(loopThisStep);
+
+                if (quitThisNode)
                 {
                     break;
                 }
-
-                // Step ok
-                SignalStep(step, false);
             }
 
             if ((ev == gEventStop) || (ev == gEventQuit) || (stopOnError))
@@ -918,12 +902,14 @@ void ProcessEngine::Run()
             mMutex.lock();
             mRunning = true;
             mMutex.unlock();
+
             ScanAvailableConnections();
             if (IsLoaded())
             {
                 InitializeScriptContext();
             }
             std::vector<Value> args;
+
             mMutex.lock();
             mRunning = false;
             mMutex.unlock();

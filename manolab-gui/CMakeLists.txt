@@ -33,6 +33,7 @@ endif()
 add_executable(manolab-gui
     gl3w/GL/gl3w.c
     main.cpp
+    WindowBase.h
     ConsoleWindow.cpp
     ConsoleWindow.h
 

@@ -4,8 +4,10 @@
 #include "Log.h"
 #include "JsonValue.h"
 #include "JsonReader.h"
+#include "IProcessEngine.h"
 
-PluginController::PluginController()
+PluginController::PluginController(IProcessEngine &engine)
+    : mEngine(engine)
 {
 
 }
@@ -25,14 +27,14 @@ void PluginController::SetPlugins(const std::vector<std::string> &plugins)
     mList = plugins;
 }
 /*****************************************************************************/
-bool PluginController::LinkDevice(Device &device, IProcessEngine &engine)
+bool PluginController::LinkDevice(Device &device)
 {
     for (auto & dev : mLibs)
     {
         if ((dev.second->info->className == device.type))
         {
             device.Reset();
-            engine.RegisterJsFunction(device.name, dev.second);
+            mEngine.RegisterJsFunction(device.name, dev.second);
 
             JsonReader reader;
             JsonValue json;
@@ -66,7 +68,16 @@ bool PluginController::LinkDevice(Device &device, IProcessEngine &engine)
 /*****************************************************************************/
 std::string PluginController::Callback(const char *req)
 {
-    TLogInfo(req);
+    std::vector<Value> args;
+    Value val = Value(req);
+    val.SetJsonString(true);
+    args.push_back(val);
+
+    //TLogInfo(req);
+    mPool.enqueue_work([=](){
+
+        mEngine.SendEvent(IProcessEngine::SIG_TABLE_ACTION, args);
+    });
     return "";
 }
 /*****************************************************************************/

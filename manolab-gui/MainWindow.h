@@ -8,6 +8,7 @@
 #include "ImageWindow.h"
 #include "TaskListWindow.h"
 #include "Settings.h"
+#include "TableWindow.h"
 
 class MainWindow
 {
@@ -26,6 +27,7 @@ private:
     CodeEditor editor;
     TaskListWindow taskList;
     Settings mSettings;
+    TableWindow tableWindow;
     ImGuiFileDialog fileDialog;
 
     void SetupFileMenu();

@@ -6,19 +6,7 @@
 #include <memory>
 #include "IModbusMaster.h"
 #include "IScriptEngine.h"
-
-struct Test
-{
-    std::string title;
-    bool enable;
-    std::vector<std::string> steps;
-
-    Test()
-        : enable(true)
-    {
-
-    }
-};
+#include "Node.h"
 
 struct Device
 {
@@ -52,16 +40,33 @@ class IProcessEngine
 {
 public:
 
+    enum Event {
+        SIG_DELAY_1S,
+        SIG_TEST_NUMBER,
+        SIG_STEP_NUMBER,
+        SIG_TEST_SKIPPED,
+        SIG_TEST_ENDED,
+        SIG_TEST_ERROR,
+        SIG_TEST_FINISHED,
+        SIG_LOADED,
+        SIG_MESSAGE,
+        SIG_INPUT_TEXT,
+        SIG_AUTO_TEST_FINISHED,
+        SIG_SHOW_IMAGE,
+        SIG_TABLE_ACTION,
+    };
+
     virtual ~IProcessEngine() {}
 
     virtual void Initialize() = 0;
     virtual bool IsRunning() = 0;
     virtual bool IsAdmin() const = 0;
     virtual bool IsLoaded() const = 0;
+    virtual void SendEvent(Event ev, const std::vector<Value> &args) = 0;
     virtual std::string GetDescription() const = 0;
     virtual std::string GetTestTitle(unsigned int index) const = 0;
     virtual void LoadScript(const std::string &scriptFullPath) = 0;
-    virtual std::vector<Test> GetTests() = 0;
+    virtual std::vector<Node> GetTests() = 0;
     virtual std::vector<std::string>  GetConnList() = 0;
     virtual void Stop() = 0;
     virtual void Start() = 0;

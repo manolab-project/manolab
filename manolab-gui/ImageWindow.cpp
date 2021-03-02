@@ -16,6 +16,11 @@ void ImageWindow::Initialize() {
 
 void ImageWindow::Draw(const char *title, bool *p_open)
 {
+    if (!IsVisible())
+    {
+        return;
+    }
+
     ImGui::SetNextWindowSize(ImVec2(626, 744), ImGuiCond_FirstUseEver);
     if (!ImGui::Begin(title, p_open))
     {

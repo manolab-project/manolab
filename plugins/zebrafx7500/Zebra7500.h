@@ -5,6 +5,8 @@
 #include "rfidapi.h"
 #include <thread>
 #include "IProcessEngine.h"
+#include "EventLoop.h"
+#include "Util.h"
 
 class Zebra7500 : public mano::PluginBase
 {
@@ -24,16 +26,29 @@ private:
     Device dev;
 
     struct TagInfo {
-        std::chrono::time_point<std::chrono::high_resolution_clock> first_seen;
+
+        enum TagState {
+            DISCOVERABLE,
+            CAPTURED,
+        };
+
+        int64_t first_seen;
+        int64_t last_seen;
         uint32_t counter;
         uint32_t prev;
-        bool newTag;
+        uint32_t save_counter;
+        TagState state;
+        bool blocked;
+        uint64_t id;
 
         TagInfo() {
-            first_seen = std::chrono::high_resolution_clock::now();
+            first_seen = Util::CurrentTimeStamp64();
+            last_seen = first_seen;
             counter = 0;
             prev = 0;
-            newTag = true;
+            state = DISCOVERABLE;
+            blocked = true;
+            id = 0;
         }
     };
 
@@ -42,10 +57,15 @@ private:
     mano::IPlugin::ICallBack *mCb = nullptr;
     bool mInitialized = false;
 
+    EventLoop mEv;
+
     bool Initialize();
     void Stop();
     bool Execute(const std::vector<Value> &args, Value &ret);
     void InventoryLoop();
+    void ManageTagEvent(uint64_t tid);
+    void ManageTimeout();
+    void SendToManolab(int64_t id);
 };
 
 #endif // ZEBRA7500_H

@@ -122,7 +122,7 @@ void TaskListWindow::Draw(const char *title, bool *p_open)
 //        ImGui::TableSetupColumn("Tour", ImGuiTableColumnFlags_WidthStretch);
 //        ImGui::TableSetupColumn("Temps", ImGuiTableColumnFlags_WidthStretch);
 
-        std::vector<Test> tests = mEngine.GetTests();
+        std::vector<Node> tests = mEngine.GetTests();
 
         ImGui::TableHeadersRow();
         int row = 1;
