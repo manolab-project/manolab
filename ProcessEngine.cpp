@@ -36,7 +36,7 @@ ProcessEngine::ProcessEngine()
         mDeviceList.push_back(std::make_shared<ModbusMaster>());
         mDeviceList.push_back(std::make_shared<BK8500>());
 
-#ifdef USE_WINDOWS_OS
+#ifdef USE_IXXAT
         mDeviceList.push_back(&mCanDevice[i]);
 #endif
         mDeviceList.push_back(std::make_shared<Controllino>());
@@ -82,7 +82,7 @@ ProcessEngine::~ProcessEngine()
 
     std::cout << "~ProcessEngine() called" << std::endl;
 
-#ifdef USE_WINDOWS_OS
+#ifdef USE_IXXAT
     // One time inits
     CanDevice::StopIxxatServer();
 #endif
@@ -131,7 +131,7 @@ void ProcessEngine::ScanAvailableConnections()
         mConnList.push_back(ser.friendName + ":" + ser.portName);
     }
 
-#ifdef USE_WINDOWS_OS
+#ifdef USE_IXXAT
     std::vector<std::string> canList = CanDevice::GetList();
     for (const auto &can : canList)
     {
@@ -144,7 +144,7 @@ bool ProcessEngine::InitializeScriptContext()
 {
     bool ret = true;
 
-#ifdef USE_WINDOWS_OS
+#ifdef USE_IXXAT
     // One time inits
     CanDevice::StopIxxatServer();
     CanDevice::StartIxxatServer();

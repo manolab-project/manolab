@@ -7,9 +7,3 @@
 [submodule "lib/serial"]
 	path = lib/serial
 	url = https://github.com/brasserie/serial.git
-[submodule "manolab-gui/ImGuiColorTextEdit"]
-	path = manolab-gui/ImGuiColorTextEdit
-	url = https://github.com/manolab-project/ImGuiColorTextEdit.git
-[submodule "manolab-gui/ImGuiFileDialog"]
-	path = manolab-gui/ImGuiFileDialog
-	url = https://github.com/aiekick/ImGuiFileDialog.git

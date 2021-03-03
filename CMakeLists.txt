@@ -12,16 +12,18 @@ set(ICL_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/lib/icl)
 include(${CMAKE_CURRENT_SOURCE_DIR}/lib/icl/icl.cmake)
 
 if(UNIX AND NOT APPLE)
-    add_definitions(-DUSE_UNIX_OS)
+    add_definitions(-DUSE_UNIX_OS) 
+    add_definitions(-fPIC)
 endif()
 
 if(WIN32)
     add_definitions(-DUSE_WINDOWS_OS)
 endif()
 
-add_library(
-    manolab
-    STATIC
+add_definitions(-DUNICODE)
+
+set(MANOLAB_SRC
+
     ProcessEngine.cpp
     ProcessEngine.h
 
@@ -68,11 +70,22 @@ add_library(
     lib/serial/SerialPort.cpp
     lib/serial/serial.c
     lib/modbuslib/modbus.c
-
-    lib/libhid/hid_linux.c
 )
 
-add_definitions(-fPIC)
+if(WIN32)
+    list(APPEND MANOLAB_SRC lib/libhid/hid_win32.c)
+
+elseif(UNIX)
+    list(APPEND MANOLAB_SRC lib/libhid/hid_linux.c)
+endif()
+
+add_library(
+    manolab
+    STATIC
+    ${MANOLAB_SRC}
+
+    
+)
 
 target_include_directories (
     manolab

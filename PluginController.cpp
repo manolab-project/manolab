@@ -106,16 +106,16 @@ void PluginController::PluginInterface::SendRequestToDevice(const std::string &c
 /*****************************************************************************/
 void PluginController::LoadOnePlugin(const std::string &name)
 {
+    std::string prefix;
+    #ifdef USE_LINUX_OS
+        prefix = "lib";
+    #endif
     // Set the plugin shared library location
     std::string fullPath = Util::GetCurrentDirectory() +
             Util::DIR_SEPARATOR + "plugins"  +
-            Util::DIR_SEPARATOR + name;
-    #if WIN32
-        # ifdef _DEBUG
-            fullPath += "d.dll";
-        # else
-            fullPath += ".dll";
-        # endif
+            Util::DIR_SEPARATOR + prefix + name;
+    #if USE_WINDOWS_OS
+        fullPath += ".dll";
     #else
         fullPath += ".so";
     #endif

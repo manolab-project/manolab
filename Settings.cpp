@@ -5,7 +5,7 @@
 
 void Settings::ReadSettings(IProcessEngine &engine)
 {
-    std::string defaultWorkspace = Util::HomePath() + Util::DIR_SEPARATOR + ".manloab";
+    std::string defaultWorkspace = Util::HomePath() + Util::DIR_SEPARATOR + ".manolab";
     std::string workspace = defaultWorkspace;
     JsonReader confFile;
     JsonValue json;
@@ -15,7 +15,6 @@ void Settings::ReadSettings(IProcessEngine &engine)
         workspace = json.FindValue("workspace").GetString();
 
         JsonArray plugins = json.FindValue("plugins").GetArray();
-
 
         for (const auto & p : plugins)
         {

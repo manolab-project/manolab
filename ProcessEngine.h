@@ -35,7 +35,7 @@
 //#include "InputText.h"
 //#include "ShowImage.h"
 
-#ifdef USE_WINDOWS_OS
+#ifdef USE_IXXAT
 #include "CanDevice.h"
 #endif
 
@@ -113,7 +113,7 @@ private:
     VoltCraftPPS mVoltcraftPPS[MAX_DEVICES];
     BK8500 mBK8500[MAX_DEVICES];
     ModbusMaster mModbusMaster[MAX_DEVICES];
-#ifdef USE_WINDOWS_OS
+#ifdef USE_IXXAT
     CanDevice mCanDevice[MAX_DEVICES];
 #endif
     Controllino mControllino[MAX_DEVICES];

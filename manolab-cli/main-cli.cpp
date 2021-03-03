@@ -104,7 +104,7 @@ void Task::run()
         std::cout << "Switched workspace to: " + workspaceDir << std::endl;
     }
 
-    std::string p = engine.GetWorkspace() + "/files";
+    std::string p = engine.GetWorkspace() + "/scripts";
 
     filesPath = p.c_str();
     QList<QString> files;

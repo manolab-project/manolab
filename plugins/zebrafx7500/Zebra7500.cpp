@@ -1,3 +1,9 @@
+
+#ifdef WIN32
+#include <windows.h>
+#include <commctrl.h>
+#endif
+ 
 #include "Zebra7500.h"
 #include "Zebra7500Util.h"
 #include <iostream>
@@ -146,6 +152,41 @@ static void ZebraRfidEventCallback(RFID_HANDLE32 readerHandle, RFID_EVENT_TYPE e
     mLoopQueue.Push(eventType);
 }
 
+void HandleResult(RFID_HANDLE32 readerHandle, RFID_STATUS rfidStatus)
+{
+	if(rfidStatus != RFID_API_SUCCESS)
+	{
+		ERROR_INFO errorInfo;
+		RFID_GetLastErrorInfo(readerHandle, &errorInfo);
+		wprintf(L"Error: %ls\n\t%ls\n\t%ls", RFID_GetErrorDescription(rfidStatus), errorInfo.statusDesc, errorInfo.vendorMessage);
+	}
+
+}
+
+static READER_CAPS readerCaps;
+static ANTENNA_INFO g_antennaInfo;
+RFID_STATUS  ConnectReader(RFID_HANDLE32 *readerHandle, wchar_t *hostName, int readerPort)
+{
+	RFID_STATUS rfidStatus = RFID_API_SUCCESS;
+
+	CONNECTION_INFO connectionInfo;
+	connectionInfo.version = RFID_API3_5_1;
+	rfidStatus = RFID_Connect(readerHandle, hostName, readerPort, 0,&connectionInfo);
+	if(RFID_API_SUCCESS == rfidStatus)
+	{
+		RFID_SetTraceLevel(*readerHandle, TRACE_LEVEL_OFF);
+		rfidStatus = RFID_GetReaderCaps(*readerHandle, &readerCaps); 
+		g_antennaInfo.length = readerCaps.numAntennas;
+		g_antennaInfo.pAntennaList = new	UINT16[g_antennaInfo.length];
+		for(UINT16 nIndex = 0; nIndex < g_antennaInfo.length; nIndex++)
+			g_antennaInfo.pAntennaList[nIndex] = nIndex+1;
+		g_antennaInfo.pAntennaOpList = NULL;
+	}
+	HandleResult(*readerHandle, rfidStatus);
+	return rfidStatus;
+}
+
+
 
 bool Zebra7500::Initialize()
 {
@@ -163,10 +204,7 @@ bool Zebra7500::Initialize()
             tagStorageSettings.discardTagsOnInventoryStop = TRUE;
             RFID_SetTagStorageSettings(readerHandle,&tagStorageSettings);
 
-//            CreateEventThread(readerHandle);
             HandleResult(readerHandle, RFID_RegisterEventNotificationCallback(readerHandle, gRfidEventTypes,  MAX_EVENTS, (RfidEventCallbackFunction) ZebraRfidEventCallback, NULL, NULL));
-
-            mEv.AddTimer("timeout", std::chrono::milliseconds(500), std::bind( &Zebra7500::ManageTimeout, this));
 
             mThread = std::thread(&Zebra7500::InventoryLoop, this);
             mInitialized = true;
@@ -186,107 +224,6 @@ void Zebra7500::SendToManolab(int64_t id)
 
     mCb->Callback(json.ToString().c_str());
 }
-
-void Zebra7500::ManageTimeout()
-{
-    int64_t now = Util::CurrentTimeStamp64();
-
-    for (auto & t : mTags)
-    {
-        if (t.second.blocked)
-        {
-            if ((t.second.counter > 0) && (t.second.prev != t.second.counter))
-            {
-                // Le tag est encore dans la zone
-                t.second.prev = t.second.counter;
-            }
-            else
-            {
-                int64_t duration = now - t.second.first_seen;
-                if (duration > 20)
-                {
-                    t.second.blocked = false;
-                }
-            }
-        }
-    }
-}
-
-void Zebra7500::ManageTagEvent(uint64_t tid)
-{
-    // Si le tag n'existe pas, on l'ajoute pour cette session
-    if (mTags.count(tid) == 0)
-    {
-        TagInfo newTag;
-        newTag.id = tid;
-        mTags[tid] = newTag;
-    }
-
-    TagInfo &t = mTags[tid];
-
-    if (!t.blocked)
-    {
-        t.blocked = true;
-       // SendToManolab(t);
-    }
-    else
-    {
-        t.counter++;
-    }
-
-/*
-    if ((t.counter > 0) && (t.prev != t.counter))
-    {
-        // Le tag est encore dans la zone
-        t.prev = t.counter;
-        t.counter++;
-    }
-    else
-    {
-
-        mTags[tid].last_seen = std::chrono::high_resolution_clock::now();
-
-
-
-            if (!t.second.blocked)
-            {
-                t.second.blocked = true;
-                // new tag
-//                        std::string req = "NEW TAG: " + std::to_string(t.first);
-
-                JsonObject json;
-                json.AddValue("cmd", "SetTableEntry");
-                json.AddValue("tag", static_cast<std::int64_t>(t.first));
-
-                auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(t.second.last_seen);
-
-                auto value = now_ms.time_since_epoch();
-                int64_t duration = value.count();
-
-                json.AddValue("time", duration);
-
-                mCb->Callback(json.ToString().c_str());
-            }
-        }
-        else
-        {
-
-        }
-    }
-    else
-    {
-        // Le tag existe mais est bloqué
-        // Plus de détection pendant X secondes, on autorise le scan de nouveau
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>( now - t.second.first_seen ).count();
-        if (duration > 5)
-        {
-            t.second.blocked = false;
-        }
-    }
-*/
-
-}
-
 
 void Zebra7500::InventoryLoop()
 {
@@ -317,7 +254,7 @@ void Zebra7500::InventoryLoop()
             {
 //                start = true;
 
-                mTags.clear();
+        
                 RFID_STATUS rfidStatus = RFID_API_SUCCESS;
 
                 rfidStatus = RFID_PerformInventory(readerHandle, NULL, NULL, NULL, NULL);
@@ -357,11 +294,7 @@ void Zebra7500::InventoryLoop()
             }
 
             SendToManolab(tid);
-            //ManageTagEvent(tid);
-            // printTagDataWithResults(pTagData);
         }
-
-       // mEv.UpdateTimers();
     }
     while(loop);
 
