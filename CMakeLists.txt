@@ -11,12 +11,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(ICL_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/lib/icl)
 include(${CMAKE_CURRENT_SOURCE_DIR}/lib/icl/icl.cmake)
 
-if(UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE)
     add_definitions(-DUSE_UNIX_OS) 
+    add_definitions(-DUSE_LINUX_OS) 
     add_definitions(-fPIC)
 endif()
 
-if(WIN32)
+if (WIN32)
     add_definitions(-DUSE_WINDOWS_OS)
 endif()
 
@@ -72,10 +73,10 @@ set(MANOLAB_SRC
     lib/modbuslib/modbus.c
 )
 
-if(WIN32)
+if (WIN32)
     list(APPEND MANOLAB_SRC lib/libhid/hid_win32.c)
 
-elseif(UNIX)
+elseif (UNIX)
     list(APPEND MANOLAB_SRC lib/libhid/hid_linux.c)
 endif()
 
