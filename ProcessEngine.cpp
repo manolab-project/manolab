@@ -308,9 +308,9 @@ void ProcessEngine::CreateNewLogFiles()
   //  mPrintReport.SetReportFullFileName(mWorkspacePath + Util::DIR_SEPARATOR + "reports/report_" + logFileName + ".txt");
 }
 /*****************************************************************************/
-void ProcessEngine::LoadScript(const std::string &scriptFullPath)
+void ProcessEngine::LoadScript(const std::string &fileName)
 {
-    mCurrentScript = scriptFullPath;
+    std::string mCurrentScript = GetWorkspace() + Util::DIR_SEPARATOR + "scripts"  + Util::DIR_SEPARATOR + fileName;
     mQueue.Push(gEventLoad);
 }
 /*****************************************************************************/

@@ -73,7 +73,7 @@ public:
     void SendEvent(Event ev, const std::vector<Value> &args);
     std::string GetDescription() const;
     std::string GetTestTitle(unsigned int index) const;
-    void LoadScript(const std::string &scriptFullPath);
+    void LoadScript(const std::string &fileName);
     std::vector<Node> GetTests();
     std::vector<std::string>  GetConnList();
     void Stop();

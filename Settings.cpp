@@ -20,8 +20,11 @@ void Settings::ReadSettings(IProcessEngine &engine)
         {
             mPlugins.push_back(p.GetString());
         }
-
         engine.SetPlugins(mPlugins);
+
+        // Auto load specified script after plugins
+        std::string autoload = json.FindValue("autoload").GetString();
+        engine.LoadScript(autoload);
     }
 
     if (!Util::FolderExists(workspace))
