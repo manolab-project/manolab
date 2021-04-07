@@ -310,7 +310,7 @@ void ProcessEngine::CreateNewLogFiles()
 /*****************************************************************************/
 void ProcessEngine::LoadScript(const std::string &fileName)
 {
-    std::string mCurrentScript = GetWorkspace() + Util::DIR_SEPARATOR + "scripts"  + Util::DIR_SEPARATOR + fileName;
+    mCurrentScript = GetWorkspace() + Util::DIR_SEPARATOR + "scripts"  + Util::DIR_SEPARATOR + fileName;
     mQueue.Push(gEventLoad);
 }
 /*****************************************************************************/
