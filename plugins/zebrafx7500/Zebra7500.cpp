@@ -54,8 +54,6 @@ std::string Zebra7500::Request(const std::string &req)
                 dev.conn_settings = data.FindValue("conn_settings").GetString();
                 dev.id = data.FindValue("id").GetString();
                 dev.options = data.FindValue("options").GetString();
-                success = true;
-
                 success = Initialize();
             }
         }
@@ -224,6 +222,81 @@ void Zebra7500::SendToManolab(int64_t id)
 
     mCb->Callback(json.ToString().c_str());
 }
+
+/*
+
+RFID_STATUS	ConfigureAntenna(RFID_HANDLE32 readerHandle)
+{
+    RFID_STATUS rfidStatus = RFID_API_SUCCESS;
+
+    UINT16 antennaID;
+    UINT16 receiveSensitivityIndex;
+    UINT16 transmitPowerIndex;
+    UINT16 transmitFrequencyIndex;
+
+    int option = 0;
+
+    wprintf(L"\nEnter AntennaID   ");
+    scanf("%hu", &antennaID);
+
+    wprintf(L"\n----Command Menu----");
+    wprintf(L"\n1. SetConfigureAntenna");
+    wprintf(L"\n2. GetConfigureAntenna");
+
+    while(1 != scanf("%d", &option))
+    {
+        wprintf(L"\nEnter a valid input:");
+        clean_stdin();
+    }
+    switch(option)
+    {
+    case 1:
+        {
+            UINT16 frequencyIndex = 0;
+            READER_CAPS readerCaps;
+            RFID_GetReaderCaps(readerHandle, &readerCaps);
+            wprintf(L"\nEnter ReceiveSensitivityIndex  value range 0-%d   ", readerCaps.receiveSensitivtyTable.numValues-1);
+            scanf("%hu", &receiveSensitivityIndex);
+
+            if(readerCaps.hoppingEnabled)
+            {
+                frequencyIndex = readerCaps.freqHopInfo.numTables;
+            }
+            else
+            {
+                frequencyIndex = readerCaps.fixedFreqInfo.numFreq;
+            }
+            wprintf(L"\nEnter TransmitFrequencyIndex value 1-%d   ", frequencyIndex);
+            scanf("%hu", &transmitFrequencyIndex);
+
+            wprintf(L"\nEnter TransmitPowerIndex  value 0-%d   ", readerCaps.transmitPowerLevelTable.numValues-1);
+            scanf("%hu", &transmitPowerIndex);
+
+            rfidStatus = RFID_SetAntennaConfig(readerHandle, antennaID,
+                receiveSensitivityIndex, transmitPowerIndex, transmitFrequencyIndex);
+            if(rfidStatus == RFID_API_SUCCESS)
+                wprintf(L"\n Antenna Configuration successfully set...\n");
+        }
+        break;
+    case 2:
+        rfidStatus = RFID_GetAntennaConfig(readerHandle, antennaID, &receiveSensitivityIndex,
+            &transmitPowerIndex, &transmitFrequencyIndex);
+        if(rfidStatus == RFID_API_SUCCESS)
+        {
+            wprintf(L"\nReceiveSensitivityIndex = %d", receiveSensitivityIndex);
+            wprintf(L"\nTransmitPowerIndex = %d", transmitPowerIndex);
+            wprintf(L"\nTransmitFrequencyIndex = %d", transmitFrequencyIndex);
+        }
+        break;
+    }
+    HandleResult(readerHandle, rfidStatus);
+    return rfidStatus;
+}
+
+
+
+
+*/
 
 void Zebra7500::InventoryLoop()
 {
