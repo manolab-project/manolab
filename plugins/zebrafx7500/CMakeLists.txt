@@ -23,6 +23,10 @@ add_library(zebrafx7500 SHARED
 
 )
 
+if (UNIX)
+add_definitions(-fPIC)
+endif()
+
 target_include_directories (
     zebrafx7500
     PUBLIC
@@ -34,6 +38,7 @@ target_include_directories (
 
 if(UNIX AND NOT APPLE)
     add_definitions(-Dlinux)
+    target_link_directories(zebrafx7500 PRIVATE  ${CMAKE_CURRENT_SOURCE_DIR}/libs/linux)
     target_link_libraries(zebrafx7500 PRIVATE icl rfidapi32 utils ltk xml2)
 elseif(WIN32)
     add_definitions(-DWIN32)
