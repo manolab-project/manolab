@@ -85,6 +85,7 @@ public:
     void SetWorkspace(const std::string &path);
     IModbusMaster *GetModbusChannel(const std::string &id);
     void RegisterJsFunction(const std::string &name, std::shared_ptr<IScriptEngine::IFunction> function);
+    bool ScriptExists(const std::string &fileName);
 
 private:
     PluginController mPlugins;

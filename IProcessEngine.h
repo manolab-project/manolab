@@ -65,7 +65,7 @@ public:
     virtual void SendEvent(Event ev, const std::vector<Value> &args) = 0;
     virtual std::string GetDescription() const = 0;
     virtual std::string GetTestTitle(unsigned int index) const = 0;
-    virtual void LoadScript(const std::string &scriptFullPath) = 0;
+    virtual void LoadScript(const std::string &fileName) = 0;
     virtual std::vector<Node> GetTests() = 0;
     virtual std::vector<std::string>  GetConnList() = 0;
     virtual void Stop() = 0;
@@ -74,6 +74,7 @@ public:
     virtual void Resume() = 0;
     virtual void SetPlugins(const std::vector<std::string> &plugins) = 0;
     virtual std::string GetWorkspace() const = 0;
+    virtual bool ScriptExists(const std::string &fileName) = 0;
     virtual void SetWorkspace(const std::string &path) = 0;
     virtual IModbusMaster *GetModbusChannel(const std::string &id) = 0;
     virtual void RegisterJsFunction(const std::string &name, std::shared_ptr<IScriptEngine::IFunction> function) = 0;

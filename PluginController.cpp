@@ -17,7 +17,6 @@ void PluginController::Load()
     mLibs.clear();
     for (const auto &p : mList)
     {
-        TLogInfo("Loading plugin: " + p);
         LoadOnePlugin(p);
     }
 }
@@ -120,42 +119,58 @@ void PluginController::LoadOnePlugin(const std::string &name)
         fullPath += ".so";
     #endif
     // Load the shared library
-    std::cout << "Loading: " << fullPath << std::endl;
+
+    if (!Util::FileExists(fullPath))
+    {
+        TLogError("File does not exist: " + fullPath);
+        return;
+    }
 
     std::shared_ptr<PluginInterface> iface = std::make_shared<PluginInterface>();
 
-    iface->lib.Open(fullPath);
-
-    // Get plugin descriptor and exports
-    if (iface->lib.Sym("exports", reinterpret_cast<void**>(&iface->info)))
+    if (iface->lib.Open(fullPath))
     {
-        std::cout << "Plugin Info: "
-            << "\n\tAPI Version: " << iface->info->apiVersion
-            << "\n\tFile Name: " << iface->info->fileName
-            << "\n\tClass Name: " << iface->info->className
-            << "\n\tPlugin Name: " << iface->info->pluginName
-            << "\n\tPlugin Version: " << iface->info->pluginVersion
-            << std::endl;
-
-        // API Version checking
-        if (iface->info->apiVersion != MANOLAB_PLUGIN_API_VERSION)
+        // Get plugin descriptor and exports
+        if (iface->lib.Sym("exports", reinterpret_cast<void**>(&iface->info)))
         {
-                std::cout << "Plugin ABI version mismatch." << std::endl;
+            std::cout << "Plugin Info: "
+                << "\n\tAPI Version: " << iface->info->apiVersion
+                << "\n\tFile Name: " << iface->info->fileName
+                << "\n\tClass Name: " << iface->info->className
+                << "\n\tPlugin Name: " << iface->info->pluginName
+                << "\n\tPlugin Version: " << iface->info->pluginVersion
+                << std::endl;
+
+            // API Version checking
+            if (iface->info->apiVersion != MANOLAB_PLUGIN_API_VERSION)
+            {
+                TLogError("Plugin ABI version mismatch.");
+            }
+            else
+            {
+                // Instantiate the plugin
+                iface->plugin = reinterpret_cast<mano::IPlugin*>(iface->info->GetInterface());
+
+                // Register callback to here
+                // ==> allow communication from the plugin to manolab
+                iface->plugin->Register(this);
+
+                mLibs[iface->info->pluginName] = iface;
+
+                TLogInfo("Loaded plugin success: " + fullPath);
+
+                // Close the plugin and free memory
+              //  std::cout << "Closing" << std::endl;
+             //   lib.Close();
+            }
         }
         else
         {
-            // Instantiate the plugin
-            iface->plugin = reinterpret_cast<mano::IPlugin*>(iface->info->GetInterface());
-
-            // Register callback to here
-            // ==> allow communication from the plugin to manolab
-            iface->plugin->Register(this);
-
-            mLibs[iface->info->pluginName] = iface;
-
-            // Close the plugin and free memory
-          //  std::cout << "Closing" << std::endl;
-         //   lib.Close();
+            TLogError("Failed to load exports: " + iface->lib.GetErrorMessage());
         }
+    }
+    else
+    {
+        TLogError("Failed to load plugin: " + iface->lib.GetErrorMessage());
     }
 }

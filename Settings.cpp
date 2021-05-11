@@ -22,9 +22,7 @@ void Settings::ReadSettings(IProcessEngine &engine)
         }
         engine.SetPlugins(mPlugins);
 
-        // Auto load specified script after plugins
-        std::string autoload = json.FindValue("autoload").GetString();
-        engine.LoadScript(autoload);
+        mAutoLoadScriptName = json.FindValue("autoload").GetString();
     }
 
     if (!Util::FolderExists(workspace))
@@ -36,6 +34,13 @@ void Settings::ReadSettings(IProcessEngine &engine)
 //    std::cout << "Current workspace is: " << workspace << std::endl;
 
     engine.SetWorkspace(workspace);
+
+    // Auto load specified script
+    if (engine.ScriptExists(mAutoLoadScriptName))
+    {
+        engine.LoadScript(mAutoLoadScriptName);
+    }
+
     WriteSettings(engine);
 }
 
@@ -43,6 +48,7 @@ void Settings::WriteSettings(const IProcessEngine &engine)
 {
     JsonObject json;
     json.AddValue("workspace", engine.GetWorkspace());
+    json.AddValue("autoload", mAutoLoadScriptName);
 
     JsonArray plugins;
 

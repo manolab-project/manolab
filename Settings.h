@@ -12,6 +12,7 @@ public:
 
 private:
     std::vector<std::string> mPlugins;
+    std::string mAutoLoadScriptName;
 };
 
 #endif // SETTINGS_H

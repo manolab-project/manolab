@@ -174,9 +174,6 @@ bool ProcessEngine::InitializeScriptContext()
         dev->ClearError();
     }
 
-    // Chargement des plugins
-    mPlugins.Load();
-
     ScanAvailableConnections();
 
     // Assign all javascript devices to physical peripherals
@@ -190,7 +187,7 @@ bool ProcessEngine::InitializeScriptContext()
             // On tente les plug-ins
             if (!mPlugins.LinkDevice(dev))
             {
-                TLogError("Cannot create unkown device: " + dev.type + " or too much devices created.");
+                TLogError("Cannot create unknown device: " + dev.type + ", check name and limit.");
                 ret = false;
             }
             break;
@@ -274,6 +271,8 @@ void ProcessEngine::SetWorkspace(const std::string &path)
 void ProcessEngine::SetPlugins(const std::vector<std::string> &plugins)
 {
     mPlugins.SetPlugins(plugins);
+    // Chargement des plugins
+    mPlugins.Load();
 }
 /*****************************************************************************/
 std::string ProcessEngine::GetWorkspace() const
@@ -306,6 +305,12 @@ void ProcessEngine::CreateNewLogFiles()
 
     // FIXME NEW ARCH
   //  mPrintReport.SetReportFullFileName(mWorkspacePath + Util::DIR_SEPARATOR + "reports/report_" + logFileName + ".txt");
+}
+/*****************************************************************************/
+bool ProcessEngine::ScriptExists(const std::string &fileName)
+{
+    mCurrentScript = GetWorkspace() + Util::DIR_SEPARATOR + "scripts"  + Util::DIR_SEPARATOR + fileName;
+    return Util::FileExists(mCurrentScript);
 }
 /*****************************************************************************/
 void ProcessEngine::LoadScript(const std::string &fileName)
