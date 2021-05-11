@@ -16,7 +16,7 @@ public:
     {
     public:
 //        virtual std::string Callback(const std::string &req) = 0;
-        virtual std::string Callback(const char *) = 0;
+        virtual std::string Callback(int category, const char *) = 0;
     };
 
     /**

@@ -8,9 +8,6 @@ set( CMAKE_VERBOSE_MAKEFILE on )
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(ICL_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/lib/icl)
-include(${CMAKE_CURRENT_SOURCE_DIR}/lib/icl/icl.cmake)
-
 if (UNIX AND NOT APPLE)
     add_definitions(-DUSE_UNIX_OS) 
     add_definitions(-DUSE_LINUX_OS) 

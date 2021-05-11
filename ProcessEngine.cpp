@@ -313,6 +313,51 @@ bool ProcessEngine::ScriptExists(const std::string &fileName)
     return Util::FileExists(mCurrentScript);
 }
 /*****************************************************************************/
+void ProcessEngine::SetTableEntry(const std::string &name, uint32_t line, const std::vector<Value> &columns)
+{
+    if (mSharedTable.count(name) > 0)
+    {
+        if (line < mSharedTable[name].lines.size())
+        {
+            mSharedTable[name].lines[line] = columns;
+        }
+        else
+        {
+            mSharedTable[name].lines.push_back(columns);
+        }
+    }
+    else
+    {
+        mSharedTable[name].lines.push_back(columns);
+    }
+}
+/*****************************************************************************/
+bool ProcessEngine::GetTableEntry(const std::string &name, uint32_t line, std::vector<Value> &columns)
+{
+    bool success = false;
+    if (mSharedTable.count(name) > 0)
+    {
+        if (line < mSharedTable[name].lines.size())
+        {
+            columns = mSharedTable[name].lines[line];
+            success = true;
+        }
+    }
+    return success;
+}
+/*****************************************************************************/
+uint32_t ProcessEngine::GetTableSize(const std::string &name)
+{
+    uint32_t lines = 0;
+
+    if (mSharedTable.count(name) > 0)
+    {
+        lines = mSharedTable[name].lines.size();
+    }
+
+    return lines;
+}
+/*****************************************************************************/
 void ProcessEngine::LoadScript(const std::string &fileName)
 {
     mCurrentScript = GetWorkspace() + Util::DIR_SEPARATOR + "scripts"  + Util::DIR_SEPARATOR + fileName;

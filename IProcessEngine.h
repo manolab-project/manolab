@@ -78,6 +78,9 @@ public:
     virtual void SetWorkspace(const std::string &path) = 0;
     virtual IModbusMaster *GetModbusChannel(const std::string &id) = 0;
     virtual void RegisterJsFunction(const std::string &name, std::shared_ptr<IScriptEngine::IFunction> function) = 0;
+    virtual void SetTableEntry(const std::string &name, uint32_t line, const std::vector<Value> &columns) = 0;
+    virtual bool GetTableEntry(const std::string &name, uint32_t line, std::vector<Value> &columns) = 0;
+    virtual uint32_t GetTableSize(const std::string &name) = 0;
 };
 
 #endif // I_PROCESS_ENGINE_H

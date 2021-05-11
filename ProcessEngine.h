@@ -86,6 +86,9 @@ public:
     IModbusMaster *GetModbusChannel(const std::string &id);
     void RegisterJsFunction(const std::string &name, std::shared_ptr<IScriptEngine::IFunction> function);
     bool ScriptExists(const std::string &fileName);
+    void SetTableEntry(const std::string &name, uint32_t line, const std::vector<Value> &columns);
+    bool GetTableEntry(const std::string &name, uint32_t line, std::vector<Value> &columns);
+    uint32_t GetTableSize(const std::string &name);
 
 private:
     PluginController mPlugins;
@@ -140,6 +143,14 @@ private:
     std::vector<std::shared_ptr<DeviceBase>> mDeviceList;
     std::string mBufferedLabelImage;
 
+    struct Table
+    {
+        std::vector<std::vector<Value>> lines;
+    };
+
+    // key: table name
+    // value: table contents
+    std::map<std::string, Table> mSharedTable;
 
     void Run();
     void Join();

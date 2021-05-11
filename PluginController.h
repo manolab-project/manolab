@@ -58,7 +58,7 @@ public:
 
     bool LinkDevice(Device &device);
 
-    virtual std::string Callback(const char *req);
+    virtual std::string Callback(int category, const char *req);
 
 private:
     IProcessEngine &mEngine;

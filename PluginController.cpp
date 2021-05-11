@@ -65,18 +65,27 @@ bool PluginController::LinkDevice(Device &device)
     return device.connected;
 }
 /*****************************************************************************/
-std::string PluginController::Callback(const char *req)
+std::string PluginController::Callback(int category, const char *req)
 {
-    std::vector<Value> args;
-    Value val = Value(req);
-    val.SetJsonString(true);
-    args.push_back(val);
+    if (category == 0)
+    {
+        mPool.enqueue_work([=](){
+            TLogInfo(req);
+        });
+    }
+    else
+    {
+        std::vector<Value> args;
+        Value val = Value(req);
+        val.SetJsonString(true);
+        args.push_back(val);
 
-    //TLogInfo(req);
-    mPool.enqueue_work([=](){
+        //TLogInfo(req);
+        mPool.enqueue_work([=](){
 
-        mEngine.SendEvent(IProcessEngine::SIG_TABLE_ACTION, args);
-    });
+            mEngine.SendEvent(IProcessEngine::SIG_TABLE_ACTION, args);
+        });
+    }
     return "";
 }
 /*****************************************************************************/
