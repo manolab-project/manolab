@@ -119,7 +119,7 @@ void PluginController::LoadOnePlugin(const std::string &name)
         prefix = "lib";
     #endif
     // Set the plugin shared library location
-    std::string fullPath = Util::GetCurrentDirectory() +
+    std::string fullPath = Util::GetWorkingDirectory() +
             Util::DIR_SEPARATOR + "plugins"  +
             Util::DIR_SEPARATOR + prefix + name;
     #if USE_WINDOWS_OS
