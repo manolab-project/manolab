@@ -87,7 +87,11 @@ std::string  MiniCircuitsPwrSen::SendCommand(const std::string &command, bool po
         mClient.Send(HttpProtocol::GenerateRequest(req));
         if (mClient.RecvWithTimeout(output, 1024, 1000))
         {
-            HttpProtocol::ParseReplyHeader(output, reply);
+            if (HttpProtocol::ParseReplyFirstLine(output, reply))
+            {
+                output.erase(0, output.find("\n") + 1); // remove first line
+                HttpProtocol::ParseReplyHeaders(output, reply);
+            }
         }
         else
         {
