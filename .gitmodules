@@ -1,6 +1,3 @@
 [submodule "lib/modbuslib"]
 	path = lib/modbuslib
 	url = https://github.com/brasserie/modbuslib.git
-[submodule "lib/serial"]
-	path = lib/serial
-	url = https://github.com/brasserie/serial.git
