@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 
-#include "serial.h"
 #include "Util.h"
 #include "Log.h"
 
@@ -205,7 +204,7 @@ bool VoltCraftPPS::Request(const std::string &request, std::string &response)
     {
         if (mPort.Write(request) == SerialPort::cPortWriteSuccess)
         {
-            if (mPort.Read(response, 2) == SerialPort::cPortReadSuccess)
+            if (mPort.Read(response, std::chrono::seconds(2)) == SerialPort::cPortReadSuccess)
             {
                 //std::cout << response << std::endl;
                 if (response.find("OK\r") != std::string::npos)

@@ -3,7 +3,6 @@
 #include <iostream>
 #include <string>
 
-#include "serial.h"
 #include "Util.h"
 #include "Log.h"
 #include "modbus.h"

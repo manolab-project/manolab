@@ -58,6 +58,8 @@ private:
     char str_tmp[100];
 
     SerialPort mPort;
+    void ReadWithTimeout(const std::vector<Value> &args, Value &ret);
+    void SendToModule(const std::vector<Value> &args);
 };
 
 #endif // LONGAN_CAN_MODULE_H

@@ -256,7 +256,7 @@ bool ModbusMaster::ModbusRequest(std::uint32_t size, uint8_t slave_address, std:
         std::string readData;
         std::this_thread::sleep_for(std::chrono::milliseconds(30));
 
-        if (mPort.Read(readData, timeout_sec) == SerialPort::cPortReadSuccess)
+        if (mPort.Read(readData, std::chrono::seconds(timeout_sec)) == SerialPort::cPortReadSuccess)
         {
             uint32_t read_size = readData.size() > MAX_MODBUS_LENGTH ? MAX_MODBUS_LENGTH : readData.size();
             readData.copy(reinterpret_cast<char *>(&mPacket[0]), read_size);

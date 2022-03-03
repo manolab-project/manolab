@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstring>
 #include <iostream>
+#include <thread>
 #include "LonganCanModule.h"
 #include "Util.h"
 #include "Log.h"
@@ -29,6 +30,186 @@ LonganCanModule::LonganCanModule()
 
 }
 
+void LonganCanModule::ReadWithTimeout(const std::vector<Value> &args, Value &ret)
+{
+    std::uint32_t timeout = 5; // seconds
+    bool filterOnId = false;
+    std::uint32_t filteredId = 0U;
+    std::vector<std::uint32_t> filteredData;
+
+    if (args.size() >= 2)
+    {
+        timeout = static_cast<std::uint32_t>(args[1].GetInteger());
+
+        if (timeout == 0)
+        {
+            timeout = 5;
+        }
+
+        if (args.size() >= 3)
+        {
+            filterOnId = true;
+            filteredId = static_cast<std::uint32_t>(args[2].GetInteger());
+
+            // Also filter on data values
+            if (args.size() >= 4)
+            {
+                for (std::uint32_t i = 3U; i < args.size(); i++)
+                {
+                    filteredData.push_back(static_cast<std::uint32_t>(args[i].GetInteger()));
+                }
+            }
+        }
+    }
+
+    std::vector<std::string> list;
+    unsigned long id = 0U;
+    std::vector<std::uint32_t> canData;
+    bool success = false;
+
+    do
+    {
+        uchar buf[20];
+
+        int size = recv(&id, &buf[0]);
+
+//        if (size > 0)
+//        {
+//            std::cout << "RCV: ID=" << id << " DATA: ";
+//            for (int i = 0; i < size; i++)
+//            {
+//                std::cout << std::hex << (int)buf[i] << " ,";
+//            }
+//            std::cout << std::endl;
+//        }
+
+
+        if (size == 0)
+        {
+            // Still wait
+            std::this_thread::sleep_for(std::chrono::seconds(1U));
+            timeout--;
+        }
+        else if (size > 0)
+        {
+
+            canData.clear();
+            for (int i = 0; i < size; i++)
+            {
+                canData.push_back(buf[i]);
+            }
+
+
+            if (filterOnId)
+            {
+                if (id == filteredId)
+                {
+                    if (filteredData.size() > 0)
+                    {
+                        bool dataEqual = true;
+                        // Also filter on data
+                        for (std::uint32_t i = 0U; i < filteredData.size(); i++)
+                        {
+                            if (i < canData.size())
+                            {
+                                if (filteredData[i] != canData[i])
+                                {
+                                    dataEqual = false;
+                                }
+                            }
+                            else
+                            {
+                                std::cout << "FILTER FAILED: NOT ENOUGH DATA" << std::endl;
+                                dataEqual = false;
+                            }
+                        }
+
+                        if (dataEqual)
+                        {
+                            success = true;
+                            timeout = 0; // Got the message we want!
+                            std::cout << "READ CAN SUCCESS WITH ID AND DATA" << std::endl;
+                        }
+                    }
+                    else
+                    {
+                        success = true;
+                        timeout = 0; // Got the message we want!
+                        std::cout << "READ CAN SUCCESS WITH ID" << std::endl;
+                    }
+                }
+            }
+            else
+            {
+                timeout = 0;
+                success = true; // we got data
+                std::cout << "READ CAN SUCCESS" << std::endl;
+            }
+        }
+    }
+    while(timeout > 0);
+
+    std::stringstream ss;
+    if (success)
+    {
+        ss << R"({"status": "success", "id":)" << id << R"(, "size": )" << canData.size() << R"(, "data": [)";
+
+        if (canData.size() > 0)
+        {
+           for (std::uint32_t i = 0; i < canData.size(); i++)
+           {
+               ss << canData[i];
+               if (i < (canData.size() - 1))
+               {
+                   ss << ", ";
+               }
+           }
+        }
+
+        ss  << "]}";
+
+       std::cout << "CAN READ: " << ss.str() << std::endl;
+    }
+    else
+    {
+        ss << R"({"status": "error"})";
+    }
+    ret = Value(ss.str());
+    ret.SetJsonString(true);
+}
+
+void LonganCanModule::SendToModule(const std::vector<Value> &args)
+{
+    unsigned long id;
+    int data_size = 0;
+
+    if (args.size() >= 2)
+    {
+        id = static_cast<unsigned long>(args[1].GetInteger());
+        data_size = static_cast<int>(args.size()) - 2;
+
+        if (data_size <= 8)
+        {
+            unsigned char dta[8] = {0,0,0,0,0,0,0,0};
+            for (int i = 0; i < data_size; i++)
+            {
+                unsigned int index = static_cast<unsigned int>(2 + i);
+                dta[i] = args[index].GetInteger();
+            }
+
+            send(id, 0, 0, data_size, dta);
+        }
+        else
+        {
+            SetError("CAN message data cannot exceed 8 bytes.");
+        }
+    }
+    else
+    {
+        SetError("Specify CAN message ID to send.");
+    }
+}
+
 bool LonganCanModule::Execute(const std::vector<Value> &args, Value &ret)
 {
     (void) ret;
@@ -42,29 +223,11 @@ bool LonganCanModule::Execute(const std::vector<Value> &args, Value &ret)
 
             if (cmd == std::string("SEND"))
             {
-                unsigned char dta[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-
-                // send(unsigned long id, byte ext, byte rtrBit, byte len, const byte *buf);
-
-                send(0x55, 0, 0, 8, dta);   // SEND TO ID:0X55
-
+                SendToModule(args);
             }
             else if (cmd == std::string("RECV"))
             {
-                unsigned long id;
-                uchar buf[20];
-
-                int size = recv(&id, &buf[0]);
-
-                if (size > 0)
-                {
-                    std::cout << "RCV: ID=" << id << " DATA: ";
-                    for (int i = 0; i < size; i++)
-                    {
-                        std::cout << std::hex << (int)buf[i] << " ,";
-                    }
-                    std::cout << std::endl;
-                }
+                ReadWithTimeout(args, ret);
             }
         }
     }
@@ -99,12 +262,13 @@ void LonganCanModule::send(unsigned long id, uchar ext, uchar rtrBit, uchar len,
 
 
 // 0: no data
-// 1: get data
+// >0 : data size
 int LonganCanModule::recv(unsigned long *id, uchar *buf)
 {
     std::string readData;
   //  if(canSerial->available())
-    if (mPort.Read(readData, 1) == SerialPort::cPortReadSuccess)
+//    mPort.Flush();
+    if (mPort.Read(readData, std::chrono::milliseconds(10)) == SerialPort::cPortReadSuccess)
     {
 //        unsigned long timer_s = millis();
         
@@ -125,8 +289,9 @@ int LonganCanModule::recv(unsigned long *id, uchar *buf)
 
             
             //if(len == 12) // Just to be sure, must be 12 here
-            if (readData.size() == 12)
+            if (readData.size() >= 12)
             {
+                unsigned long max_read = readData.size() > 12 ? 12 : readData.size();
                 unsigned long __id = 0;
                 
                 for(int i=0; i<4; i++) // Store the id of the sender
@@ -141,7 +306,7 @@ int LonganCanModule::recv(unsigned long *id, uchar *buf)
                 {
                     buf[i] = readData[i+4];
                 }
-                return readData.size() - 4;
+                return max_read - 4;
             }
         }
     }
@@ -171,7 +336,7 @@ unsigned char LonganCanModule::cmdOk(const char *cmd)
 //            timer_s = millis();
 //        }
         std::string readData;
-        if (mPort.Read(readData, 1) == SerialPort::cPortReadSuccess)
+        if (mPort.Read(readData, std::chrono::seconds(1)) == SerialPort::cPortReadSuccess)
         {
 
 
@@ -234,7 +399,8 @@ void LonganCanModule::clear()
 //    }
 
     std::string readData;
-    (void) mPort.Read(readData, 1);
+    (void) mPort.Read(readData, std::chrono::milliseconds(50));
+    mPort.Flush();
 }
 
 unsigned char LonganCanModule::enterSettingMode()

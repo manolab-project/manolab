@@ -2,8 +2,6 @@
 
 #include <iostream>
 #include <string>
-
-#include "serial.h"
 #include "Util.h"
 #include "Log.h"
 
@@ -330,7 +328,7 @@ bool BK8500::SendToDevice(const std::string &packet, std::string &dataRead)
         if (mPort.Write(packet) == SerialPort::cPortWriteSuccess)
         {
             // 2 seconds timeout: FIXME: make it as a setting
-            if (mPort.Read(dataRead, 2) == SerialPort::cPortReadSuccess)
+            if (mPort.Read(dataRead, std::chrono::seconds(2)) == SerialPort::cPortReadSuccess)
             {
                 success = true;
             }

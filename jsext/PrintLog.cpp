@@ -21,13 +21,17 @@ bool PrintLog::Execute(const std::vector<Value> &args, Value &ret)
             std::string text;
             std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
-            if (args.size() >= 1)
+            if (args.size() == 2)
             {
                 if (args[1].GetType() != Value::STRING)
                 {
                     TLogWarning("printLog expected arguments to be of type string");
                 }
                 text = args[1].GetString();
+            }
+            else
+            {
+                TLogWarning("printLog expected 2 arguments <type, message>");
             }
 
             if (type == "error")
