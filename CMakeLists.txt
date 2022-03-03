@@ -28,6 +28,9 @@ set(MANOLAB_SRC
     IProcessEngine.h
     IPlugin.h
 
+    SerialPort.cpp
+    SerialPort.h
+
     PluginController.cpp
     PluginController.h
     Plugin.h
@@ -65,9 +68,11 @@ set(MANOLAB_SRC
     devices/AcuDC.cpp
 
     # Third party libraries
-    lib/serial/SerialPort.cpp
-    lib/serial/serial.c
+
     lib/modbuslib/modbus.c
+#    lib/libserialport/serialport.c
+#    lib/libserialport/sp_timing.c
+#    lib/libserialport/linux.c
 )
 
 if (WIN32)
@@ -81,16 +86,21 @@ add_library(
     manolab
     STATIC
     ${MANOLAB_SRC}
-
-    
 )
+
+set(MANOLAB_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/devices
+    ${CMAKE_CURRENT_SOURCE_DIR}/jsext
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/modbuslib
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/libhid
+)
+
+if (WIN32)
+    list(APPEND MANOLAB_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/lib/libserialport)
+endif()
 
 target_include_directories (
     manolab
     PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/devices
-    ${CMAKE_CURRENT_SOURCE_DIR}/jsext
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/modbuslib
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/serial
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/libhid
+    ${MANOLAB_HEADERS}
 )
